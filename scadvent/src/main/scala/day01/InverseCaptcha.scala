@@ -1,7 +1,7 @@
 package day01
 
 object InverseCaptcha {
-  def sum(number: String): Int = {
+  def sumNext(number: String): Int = {
     val digits = toDigits(number)
     val nextDigits = shift(digits)
     digits
