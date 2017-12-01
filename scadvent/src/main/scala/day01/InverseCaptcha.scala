@@ -1,21 +1,26 @@
 package day01
 
+import scala.Function.tupled
+import scala.annotation.tailrec
+
 object InverseCaptcha {
-  def sumNext(number: String): Int = {
+  def sumMatchesHalfwayAround(number: String): Int =
+    sumMatches(number.length / 2, number)
+
+  def sumMatchesNext(number: String): Int = sumMatches(1, number)
+
+  private def sumMatches(distance: Int, number: String) = {
     val digits = toDigits(number)
-    val nextDigits = shift(digits)
-    digits
-      .zip(nextDigits)
-      .withFilter { case (digit, next) => digit == next }
-      .map { case (digit, _) => digit }
-      .sum
+    val toMatch = shift(digits, distance)
+    val matches = digits.zip(toMatch).filter(tupled(_ == _)).map(_._1)
+    matches.sum
   }
 
-  private def toDigits(number: String): Seq[Int] = {
+  private def toDigits(number: String): Seq[Int] =
     number.toCharArray.map(code => code - '0')
-  }
 
-  private def shift[T](seq: Seq[T]): Seq[T] = {
-    if (seq.isEmpty) seq else seq.tail :+ seq.head
-  }
+  @tailrec
+  private def shift[T](seq: Seq[T], times: Int): Seq[T] =
+    if (times == 0 || seq.isEmpty) seq
+    else shift(seq.tail :+ seq.head, times - 1)
 }
