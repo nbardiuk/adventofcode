@@ -1,21 +1,21 @@
 package day01
 
-import java.lang.Integer.parseInt
-
 object InverseCaptcha {
   def sum(number: String): Int = {
-    val digits = digs(number)
+    val digits = toDigits(number)
     val nextDigits = shift(digits)
-    digits.zip(nextDigits)
-      .filter { case (digit, next) => digit == next }
-      .map { case (digit, _) => digit }.sum
+    digits
+      .zip(nextDigits)
+      .withFilter { case (digit, next) => digit == next }
+      .map { case (digit, _) => digit }
+      .sum
   }
 
-  private def digs(number: String): Seq[Int] = {
-    number.toCharArray.map(c => parseInt("" + c))
+  private def toDigits(number: String): Seq[Int] = {
+    number.toCharArray.map(code => code - '0')
   }
 
-  private def shift[T](ns: Seq[T]): Seq[T] = {
-    if (ns.isEmpty) ns else ns.tail :+ ns.head
+  private def shift[T](seq: Seq[T]): Seq[T] = {
+    if (seq.isEmpty) seq else seq.tail :+ seq.head
   }
 }
