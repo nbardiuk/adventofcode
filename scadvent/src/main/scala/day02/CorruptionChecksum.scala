@@ -11,5 +11,5 @@ object CorruptionChecksum {
     spreadsheet.map(rowEdv).sum
 
   def rowEdv(row: Seq[Int]): Int =
-    row.flatMap(v => row.filter(_ % v == 0).filterNot(_ == v).map(_ / v)).head
+    (for (a <- row; b <- row; if a % b == 0 && a != b) yield a / b).head
 }
