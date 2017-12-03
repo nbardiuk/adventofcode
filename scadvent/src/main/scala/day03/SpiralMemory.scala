@@ -1,89 +1,91 @@
 package day03
 
-import java.lang.Math.{abs, max}
+import java.lang.Math.{abs, ceil, max, sqrt}
 
-import scala.collection.immutable.Stream.iterate
+import scala.collection.immutable.Stream.from
 import scala.collection.mutable
 
 object SpiralMemory {
   def firstFibonachiAfter(value: Int): Int =
-    iterate(1)(_ + 1).map(gridFibonachi).dropWhile(_ <= value).head
+    from(1).map(gridFibonachi).dropWhile(_ <= value).head
 
-  def gridFibonachi: Int => Int = position => {
-    def go(position: Int, cache: mutable.Map[Int, Int]): Int = {
-      cache.getOrElseUpdate(position,
-        neighbours(toGrid(position)).map(fromGrid).filter(_ < position).map(go(_, cache)).sum)
-    }
+  def gridFibonachi(position: Int): Int = recMemo[Int, Int](self => position =>
+    if (position == 1) 1
+    else neighbours(position).filter(_ < position).map(self).sum)(position)
 
-    go(position, mutable.HashMap(1 -> 1))
+  private def recMemo[I, O](recursive: ((I => O) => I => O)): I => O = {
+    var cachedSelf: I => O = null
+    cachedSelf = memo()(recursive(cachedSelf)(_))
+    cachedSelf
   }
 
-  private def neighbours(cell: (Int, Int)): Seq[(Int, Int)] = {
+  private def memo[I, O](cache: mutable.Map[I, O] = mutable.HashMap[I, O]())(
+    func: I => O): I => O =
+    input => cache.getOrElseUpdate(input, func(input))
+
+  private def neighbours(position: Int): Seq[Int] =
+    gridNeighbours(toGrid(position)).map(fromGrid)
+
+  private def gridNeighbours(cell: (Int, Int)): Seq[(Int, Int)] =
     for {
       x <- -1 to 1
       y <- -1 to 1
     } yield (cell._1 + x, cell._2 + y)
-  }
 
-  def fromGrid(grid: (Int, Int)): Int = {
-    if (grid == (0, 0)) return 1
-    val turn = max(abs(grid._1), abs(grid._2))
+  def fromGrid(cell: (Int, Int)): Int = {
+    val turn = SpiralTurn.fromGrid(cell)
     val side = {
-      if (turn == grid._1 && turn != -grid._2) 0
-      else if (-grid._1 == turn) 2
-      else if (grid._2 == turn) 1
+      if (turn.index == cell._1 && turn.index != -cell._2) 0
+      else if (turn.index == cell._2) 1
+      else if (turn.index == -cell._1) 2
       else 3
     }
-
-    val index = SpiralIndex(turn)
-    val axisShift = index.sideSize / 2 - 1
-    val axis = side * index.sideSize + axisShift
-
     val toAxis = side match {
-      case 0 => grid._2
-      case 1 => -grid._1
-      case 2 => -grid._2
-      case 3 => grid._1
+      case 0 => cell._2
+      case 1 => -cell._1
+      case 2 => -cell._2
+      case 3 => cell._1
     }
-    index.minPosition + axis + toAxis
+    turn.minPosition + (side * turn.sideSize + turn.sideAxis) + toAxis
   }
 
   def toGrid(position: Int): (Int, Int) = {
-    if (position == 1) {
-      (0, 0)
-    } else {
-      val index = indexOf(position)
-      val side = index.localIndex / index.sideSize
-      val axis = index.sideSize / 2 - 1
-      val toAxis = index.localIndex % index.sideSize - axis
+    val turn = turnOf(position)
+    turn.toGrid(position - turn.minPosition)
+  }
+
+  def distance(position: Int): Int = {
+    val cell = toGrid(position)
+    abs(cell._1) + abs(cell._2)
+  }
+
+  def turnOf(position: Int): SpiralTurn = {
+    val root = ceil(sqrt(position))
+    val sqSide = if (root % 2 == 0) root + 1 else root
+    val turn = ((sqSide - 1) / 2).intValue()
+    SpiralTurn(turn)
+  }
+
+  case class SpiralTurn(index: Int) {
+    val sideSize: Int = index * 2
+    val sideAxis: Int = max(sideSize / 2 - 1, 0)
+    val minPosition: Int = max(sideSize - 1, 0) * max(sideSize - 1, 0) + 1
+
+    def toGrid(localIndex: Int): (Int, Int) = {
+      val side = if (index == 0) 0 else localIndex / sideSize
+      val toAxis = if (index == 0) 0 else localIndex % sideSize - sideAxis
       side match {
-        case 0 => (index.turn, toAxis)
-        case 1 => (-toAxis, index.turn)
-        case 2 => (-index.turn, -toAxis)
-        case 3 => (toAxis, -index.turn)
+        case 0 => (index, toAxis)
+        case 1 => (-toAxis, index)
+        case 2 => (-index, -toAxis)
+        case 3 => (toAxis, -index)
       }
     }
   }
 
-  def distance(position: Int): Int = {
-    val grid = toGrid(position)
-    abs(grid._1) + abs(grid._2)
-  }
-
-  def indexOf(position: Int): SpiralIndex =
-    iterate(SpiralIndex(turn = 0))(_.nextTurn)
-      .dropWhile(_.maxPosition < position)
-      .map(si => si.copy(localIndex = position - si.minPosition))
-      .head
-
-  case class SpiralIndex(turn: Int, localIndex: Int = 0) {
-
-    def nextTurn: SpiralIndex = SpiralIndex(turn + 1)
-
-    def minPosition: Int = max(sideSize - 1, 0) * max(sideSize - 1, 0) + 1
-
-    def maxPosition: Int = (sideSize + 1) * (sideSize + 1)
-
-    def sideSize: Int = turn * 2
+  object SpiralTurn {
+    def fromGrid(cell: (Int, Int)): SpiralTurn = {
+      SpiralTurn(max(abs(cell._1), abs(cell._2)))
+    }
   }
 }

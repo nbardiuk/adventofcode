@@ -5,15 +5,15 @@ import org.scalatest.FlatSpec
 
 class SpiralMemoryTest extends FlatSpec {
   "First spiral" should "have single item" in {
-    assert(indexOf(1).turn == 0)
+    assert(turnOf(1).index == 0)
   }
   "Second spiral" should "have 8 items" in {
-    assert(indexOf(2).turn == 1)
-    assert(indexOf(9).turn == 1)
+    assert(turnOf(2).index == 1)
+    assert(turnOf(9).index == 1)
   }
   "Third spiral" should "have 16 items" in {
-    assert(indexOf(10).turn == 2)
-    assert(indexOf(25).turn == 2)
+    assert(turnOf(10).index == 2)
+    assert(turnOf(25).index == 2)
   }
 
   "Grid coordinate" should "" in {
