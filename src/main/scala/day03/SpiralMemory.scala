@@ -7,11 +7,13 @@ import scala.collection.mutable
 
 object SpiralMemory {
   def firstFibonachiAfter(value: Int): Int =
-    from(1).map(gridFibonachi).dropWhile(_ <= value).head
+    from(1).map(fibonachiAt).dropWhile(_ <= value).head
 
-  def gridFibonachi(position: Int): Int = recMemo[Int, Int](self => position =>
-    if (position == 1) 1
-    else neighbours(position).filter(_ < position).map(self).sum)(position)
+  def fibonachiAt: Int => Int =
+    recMemo[Int, Int] { self => position =>
+      if (position == 1) 1
+      else neighbours(position).filter(_ < position).map(self).sum
+    }(_)
 
   private def recMemo[I, O](recursive: ((I => O) => I => O)): I => O = {
     var cachedSelf: I => O = null
@@ -20,7 +22,7 @@ object SpiralMemory {
   }
 
   private def memo[I, O](cache: mutable.Map[I, O] = mutable.HashMap[I, O]())(
-    func: I => O): I => O =
+      func: I => O): I => O =
     input => cache.getOrElseUpdate(input, func(input))
 
   private def neighbours(position: Int): Seq[Int] =
