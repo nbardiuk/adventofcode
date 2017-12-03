@@ -1,35 +1,31 @@
 package day03
 
-import day03.SpiralMemory.{distance, distanceToCross, spiralOf}
+import day03.SpiralMemory._
 import org.scalatest.FlatSpec
 
 class SpiralMemoryTest extends FlatSpec {
   "First spiral" should "have single item" in {
-    assert(spiralOf(1).index == 0)
+    assert(indexOf(1).turn == 0)
   }
   "Second spiral" should "have 8 items" in {
-    assert(spiralOf(2).index == 1)
-    assert(spiralOf(9).index == 1)
+    assert(indexOf(2).turn == 1)
+    assert(indexOf(9).turn == 1)
   }
   "Third spiral" should "have 16 items" in {
-    assert(spiralOf(10).index == 2)
-    assert(spiralOf(25).index == 2)
+    assert(indexOf(10).turn == 2)
+    assert(indexOf(25).turn == 2)
   }
 
-  "First spiral cross" should "be" in {
-    assert(distanceToCross(1) == 0)
-  }
-  "Second spiral cross" should "be" in {
-    assert(distanceToCross(2) == 0)
-    assert(distanceToCross(4) == 0)
-    assert(distanceToCross(6) == 0)
-    assert(distanceToCross(8) == 0)
-  }
-  "Third spiral cross" should "be" in {
-    assert(distanceToCross(11) == 0)
-    assert(distanceToCross(15) == 0)
-    assert(distanceToCross(19) == 0)
-    assert(distanceToCross(23) == 0)
+  "Grid coordinate" should "" in {
+    assert(toGrid(1) == (0, 0))
+    assert(toGrid(2) == (1, 0))
+    assert(toGrid(3) == (1, 1))
+    assert(toGrid(4) == (0, 1))
+    assert(toGrid(5) == (-1, 1))
+    assert(toGrid(6) == (-1, 0))
+    assert(toGrid(7) == (-1, -1))
+    assert(toGrid(8) == (0, -1))
+    assert(toGrid(9) == (1, -1))
   }
 
   "Distance" should "match example data" in {
@@ -41,5 +37,37 @@ class SpiralMemoryTest extends FlatSpec {
 
   it should "calculate my data" in {
     assert(distance(325489) == 552)
+  }
+
+  "from grid coordinate" should "" in {
+    assert(fromGrid(0, 0) == 1)
+    assert(fromGrid(1, 0) == 2)
+    assert(fromGrid(1, 1) == 3)
+    assert(fromGrid(0, 1) == 4)
+    assert(fromGrid(-1, 1) == 5)
+    assert(fromGrid(-1, 0) == 6)
+    assert(fromGrid(-1, -1) == 7)
+    assert(fromGrid(0, -1) == 8)
+    assert(fromGrid(1, -1) == 9)
+  }
+
+  "to grid and back" should "preserve" in {
+    (1 to 1000).foreach(i => assert(fromGrid(toGrid(i)) == i))
+  }
+
+  "grid fibonachi" should "" in {
+    assert(gridFibonachi(1) == 1)
+    assert(gridFibonachi(2) == 1)
+    assert(gridFibonachi(3) == 2)
+    assert(gridFibonachi(10) == 26)
+    assert(gridFibonachi(23) == 806)
+  }
+
+  "first grid fibonachi after" should "" in {
+    assert(firstFibonachiAfter(3) == 4)
+    assert(firstFibonachiAfter(60) == 122)
+  }
+  it should "calculate my input" in {
+    assert(firstFibonachiAfter(325489) == 330785)
   }
 }
