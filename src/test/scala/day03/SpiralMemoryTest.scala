@@ -4,19 +4,12 @@ import day03.SpiralMemory._
 import org.scalatest.FlatSpec
 
 class SpiralMemoryTest extends FlatSpec {
-  "First spiral turn" should "have single item" in {
-    assert(turnOf(1).index == 0)
-  }
-  "Second spiral turn" should "have 8 items" in {
-    2 to 9 foreach (position => assert(turnOf(position).index == 1))
-  }
-  "Third spiral turn" should "have 16 items" in {
-    10 to 25 foreach (position => assert(turnOf(position).index == 2))
-  }
 
   "To grid and back" should "preserve position" in {
-    (1 to 1000).foreach(position =>
-      assert(fromGrid(toGrid(position)) == position))
+    (1 to 1000).foreach(
+      position =>
+        assert(fromGrid(toGrid(position)) == position,
+               s"positioin:$position, grid:${toGrid(position)}"))
   }
 
   "Distance" should "match example data" in {
