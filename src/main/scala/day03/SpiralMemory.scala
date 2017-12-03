@@ -8,32 +8,20 @@ import scala.collection.mutable
 object SpiralMemory {
 
   def firstFibonachiAfter(value: Int): Int =
-    from(1).map(fibonachiAt).dropWhile(_ <= value).head
+    from(1).map(fibonachi).dropWhile(_ <= value).head
 
-  def fibonachiAt: Int => Int =
-    recMemo[Int, Int] { self => position =>
+  def fibonachi: Int => Int =
+    fixMemo[Int, Int] { fibonachi => position =>
       if (position == 1) 1
-      else neighbours(position).filter(_ < position).map(self).sum
+      else neighbours(position).map(fibonachi).sum
     }(_)
 
-  private def recMemo[I, O](recursive: ((I => O) => I => O)): I => O = {
-    var cachedSelf: I => O = null
-    cachedSelf = memo()(recursive(cachedSelf)(_))
-    cachedSelf
-  }
-
-  private def memo[I, O](cache: mutable.Map[I, O] = mutable.HashMap[I, O]())(
-      func: I => O): I => O =
-    input => cache.getOrElseUpdate(input, func(input))
-
   private def neighbours(position: Int): Seq[Int] =
-    gridNeighbours(toGrid(position)).map(fromGrid)
+    neighbours(toGrid(position)).map(fromGrid).filter(_ < position)
 
-  private def gridNeighbours(cell: (Int, Int)): Seq[(Int, Int)] =
-    for {
-      x <- -1 to 1
-      y <- -1 to 1
-    } yield (cell._1 + x, cell._2 + y)
+  private def neighbours(cell: (Int, Int)): Seq[(Int, Int)] = cell match {
+    case (x, y) => for (dx <- -1 to 1; dy <- -1 to 1) yield (x + dx, y + dy)
+  }
 
   def distance(position: Int): Int =
     toGrid(position) match {
@@ -70,4 +58,15 @@ object SpiralMemory {
          -index -> -axisShift,
          axisShift -> -index)(side)
   }
+
+  //https://michid.wordpress.com/2009/02/23/function_mem/
+  //https://en.wikipedia.org/wiki/Fixed-point_combinator
+  private def fixMemo[I, O](fix: (I => O) => I => O): I => O = {
+    lazy val io: I => O = memo()(fix(io)(_))
+    io
+  }
+
+  private def memo[I, O](cache: mutable.Map[I, O] = mutable.HashMap[I, O]())(
+      iToO: I => O): I => O =
+    i => cache.getOrElseUpdate(i, iToO(i))
 }

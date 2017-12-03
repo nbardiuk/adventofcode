@@ -23,11 +23,11 @@ class SpiralMemoryTest extends FlatSpec {
   }
 
   "Fibonachi" should "match example" in {
-    assert(fibonachiAt(1) == 1)
-    assert(fibonachiAt(2) == 1)
-    assert(fibonachiAt(3) == 2)
-    assert(fibonachiAt(10) == 26)
-    assert(fibonachiAt(23) == 806)
+    assert(fibonachi(1) == 1)
+    assert(fibonachi(2) == 1)
+    assert(fibonachi(3) == 2)
+    assert(fibonachi(10) == 26)
+    assert(fibonachi(23) == 806)
   }
 
   "First fibonachi after value" should "match example" in {
