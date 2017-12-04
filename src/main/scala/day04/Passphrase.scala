@@ -8,9 +8,7 @@ object Passphrase {
 
   def countWithoutAnagrams(passphrases: Seq[String]): Int = passphrases.count(withoutAnagrams)
 
-  def withoutAnagrams(passphrase: String): Boolean = unique(words(passphrase).map(anagramId))
-
-  private def anagramId(word: String) = word.groupBy(c => c)
+  def withoutAnagrams(passphrase: String): Boolean = unique(words(passphrase).map(_.sorted))
 
   private def words(passphrase: String) = passphrase.split(' ')
 
