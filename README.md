@@ -6,3 +6,5 @@
 [definition](http://adventofcode.com/2017/day/2) [solution](src/main/scala/day02) [test](src/test/scala/day02)
 ### Day 3: Spiral Memory
 [definition](http://adventofcode.com/2017/day/3) [solution](src/main/scala/day03) [test](src/test/scala/day03)
+### Day 4: High-Entropy Passphrases
+[definition](http://adventofcode.com/2017/day/4) [solution](src/main/scala/day04) [test](src/test/scala/day04)
