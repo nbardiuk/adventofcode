@@ -1,5 +1,7 @@
 package day08
 
+import scala.util.parsing.combinator._
+
 object RegistersProgram {
 
   def maxRuntimeMemory(instructions: Seq[Instruction]): Int =
@@ -26,55 +28,62 @@ object RegistersProgram {
       case LTE(register, amount) => memory(register) <= amount
     }
 
-    val newValue = instruction.operation match {
-      case Inc(amount) => memory(instruction.register) + amount
-      case Dec(amount) => memory(instruction.register) - amount
+    def update(register: String)(f: Int => Int) =
+      memory.updated(register, f(memory(register)))
+
+    val updatedMemory = () =>
+      instruction.operation match {
+        case Inc(register, amount) => update(register)(_ + amount)
+        case Dec(register, amount) => update(register)(_ - amount)
     }
 
-    if (matchesCondition) memory.updated(instruction.register, newValue)
-    else memory
+    if (matchesCondition) updatedMemory() else memory
   }
 
   def initMemory(instructions: Seq[Instruction]): Map[String, Int] =
     instructions
-      .flatMap(instr => Seq((instr.register, 0), (instr.condition.register, 0)))
+      .flatMap(i => Seq((i.operation.register, 0), (i.condition.register, 0)))
       .toMap
 
-  def instruction(text: String): Instruction = {
-    val matched =
-      """([^ ]*) ([^ ]*) (-?\d+) if ([^ ]*) ([^ ]*) (-?\d+)"""
-        .r("register",
-           "operation",
-           "amount",
-           "condition.register",
-           "condition",
-           "condition.amount")
-        .findFirstMatchIn(text)
-        .get
-    val register = matched.group("register")
+  def instruction(text: String): Instruction = InstructionParser(text)
 
-    val amount = matched.group("amount").toInt
-    val operation = matched.group("operation") match {
-      case "inc" => Inc(amount)
-      case "dec" => Dec(amount)
+  object InstructionParser extends RegexParsers {
+
+    def instruction: Parser[Instruction] =
+      pair(operation, "if", condition)(Instruction)
+
+    def operation: Parser[Operation] = inc | dec
+    def inc: Parser[Inc] = pair(register, "inc", amount)(Inc)
+    def dec: Parser[Dec] = pair(register, "dec", amount)(Dec)
+
+    def condition: Parser[Condition] = eq | ne | gt | lt | gte | lte
+    def eq: Parser[Eq] = pair(register, "==", amount)(Eq)
+    def ne: Parser[NE] = pair(register, "!=", amount)(NE)
+    def gt: Parser[GT] = pair(register, ">", amount)(GT)
+    def lt: Parser[LT] = pair(register, "<", amount)(LT)
+    def gte: Parser[GTE] = pair(register, ">=", amount)(GTE)
+    def lte: Parser[LTE] = pair(register, "<=", amount)(LTE)
+
+    def register: Parser[String] = """[a-z]+""".r ^^ (_.toString)
+    def amount: Parser[Int] = """-?\d+""".r ^^ (_.toInt)
+
+    def apply(text: String): Instruction = parseAll(instruction, text) match {
+      case Success(result, _) => result
+      case failure: NoSuccess => scala.sys.error(failure.msg)
     }
 
-    val conr = matched.group("condition.register")
-    val cona = matched.group("condition.amount").toInt
-    val condition = matched.group("condition") match {
-      case ">"  => GT(conr, cona)
-      case "<"  => LT(conr, cona)
-      case "<=" => LTE(conr, cona)
-      case ">=" => GTE(conr, cona)
-      case "==" => Eq(conr, cona)
-      case "!=" => NE(conr, cona)
+    def pair[U, A, B](a: Parser[A], separator: String, b: Parser[B])(
+        join: (A, B) => U): Parser[U] = a ~ separator ~ b ^^ {
+      case a ~ _ ~ b => join(a, b)
     }
-    Instruction(register, operation, condition)
   }
 
-  sealed trait Operation
-  case class Inc(amount: Int) extends Operation
-  case class Dec(amount: Int) extends Operation
+  sealed trait Operation {
+    def register: String
+  }
+
+  case class Inc(register: String, amount: Int) extends Operation
+  case class Dec(register: String, amount: Int) extends Operation
 
   sealed trait Condition {
     def register: String
@@ -86,8 +95,6 @@ object RegistersProgram {
   case class Eq(register: String, amount: Int) extends Condition
   case class NE(register: String, amount: Int) extends Condition
 
-  case class Instruction(register: String,
-                         operation: Operation,
-                         condition: Condition)
+  case class Instruction(operation: Operation, condition: Condition)
 
 }

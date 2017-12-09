@@ -7,21 +7,21 @@ import scala.io.Source.fromURL
 
 class RegistersProgramTest extends FlatSpec {
   "Instruction register" should "should be in the beginning" in {
-    assert(instruction("b inc 5 if a > 1").register == "b")
+    assert(instruction("b inc 5 if a > 1").operation.register == "b")
   }
   it can "have multiple letters" in {
-    assert(instruction("asff inc 5 if fdsa == 1").register == "asff")
+    assert(instruction("asff inc 5 if fdsa == 1").operation.register == "asff")
     assert(instruction("asff inc 5 if fdsa == 1").condition.register == "fdsa")
   }
 
   "Instruction operation" can "be increment" in {
-    assert(instruction("b inc 5 if a > 1").operation == Inc(5))
+    assert(instruction("b inc 5 if a > 1").operation == Inc("b", 5))
   }
   it can "have decrement" in {
-    assert(instruction("b dec 2 if a > 1").operation == Dec(2))
+    assert(instruction("b dec 2 if a > 1").operation == Dec("b", 2))
   }
   it can "have negative value in operation" in {
-    assert(instruction("b inc -2 if a > 1").operation == Inc(-2))
+    assert(instruction("b inc -2 if a > 1").operation == Inc("b", -2))
   }
 
   "Instruction condition" can "be equality" in {
