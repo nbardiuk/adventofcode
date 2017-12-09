@@ -16,3 +16,5 @@
 [definition](http://adventofcode.com/2017/day/7) [solution](src/main/scala/day07) [test](src/test/scala/day07)
 ### Day 8: I Heard You Like Registers
 [definition](http://adventofcode.com/2017/day/8) [solution](src/main/scala/day08) [test](src/test/scala/day08)
+### Day 9: Stream Processing 
+[definition](http://adventofcode.com/2017/day/9) [solution](src/main/scala/day09) [test](src/test/scala/day09)
