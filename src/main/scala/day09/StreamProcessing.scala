@@ -3,10 +3,8 @@ package day09
 object StreamProcessing {
   def garbageSize(stream: String): Int =
     modalFold(stream)(0) {
-      case (Garbage, size, '>') => size
-      case (Garbage, size, '!') => size
-      case (Garbage, size, _)   => size + 1
-      case (_, size, _)         => size
+      case (Garbage, size, c) if !"!>".contains(c) => size + 1
+      case (_, size, _)                            => size
     }
 
   def groupScore(stream: String): Int =
