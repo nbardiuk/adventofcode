@@ -16,7 +16,7 @@ object StreamProcessing {
 
   private def modalFold[B](stream: String)(zero: B)(
       op: (Mode, B, Char) => B): B =
-    stream.foldLeft((zero, Normal.asInstanceOf[Mode])) {
+    stream.foldLeft((zero, Normal: Mode)) {
       case ((acc, Normal), '<')  => (op(Normal, acc, '<'), Garbage)
       case ((acc, Garbage), '>') => (op(Garbage, acc, '>'), Normal)
       case ((acc, Garbage), '!') => (op(Garbage, acc, '!'), Edit)
@@ -24,7 +24,7 @@ object StreamProcessing {
       case ((acc, mode), ch)     => (op(mode, acc, ch), mode)
     } match { case (acc, _) => acc }
 
-  trait Mode
+  sealed trait Mode
   object Normal extends Mode
   object Garbage extends Mode
   object Edit extends Mode
