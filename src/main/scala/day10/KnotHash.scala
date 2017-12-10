@@ -1,20 +1,15 @@
 package day10
 
 import scala.Seq.range
+import scala.collection.immutable.Stream.iterate
 
 object KnotHash {
 
-  private val salt = Seq(17, 31, 73, 47, 23)
-
   def knotHash(input: String): String = {
+    val salt = Seq(17, 31, 73, 47, 23)
     val sizes = input.map(_.toInt) ++ salt
-
-    val sparseHash = range(0, 64)
-      .foldLeft(Step(sizes = sizes))((step, _) => hashRound(step))
-      .hash
-
+    val sparseHash = iterate(Step(sizes = sizes))(hashRound)(64).hash
     val denseHash = sparseHash.sliding(16, 16).map(_.reduce(_ ^ _))
-
     denseHash.map(hex).mkString
   }
 

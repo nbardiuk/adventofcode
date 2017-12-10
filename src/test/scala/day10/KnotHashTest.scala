@@ -38,7 +38,6 @@ class KnotHashTest extends FlatSpec {
     assert(knotHash("1,2,3") == "3efbe78a8d82f29979031a4aa0b16a9d")
     assert(knotHash("1,2,4") == "63960835bcdc130f0b66d7ff4f6a5a8e")
   }
-
   it should "solve my input" in {
     assert(
       knotHash("189,1,111,246,254,2,0,120,215,93,255,50,84,15,94,62") == "9de8846431eef262be78f590e39a4848")
