@@ -18,3 +18,5 @@
 [definition](http://adventofcode.com/2017/day/8) [solution](src/main/scala/day08) [test](src/test/scala/day08)
 ### Day 9: Stream Processing 
 [definition](http://adventofcode.com/2017/day/9) [solution](src/main/scala/day09) [test](src/test/scala/day09)
+### Day 10: Knot Hash 
+[definition](http://adventofcode.com/2017/day/10) [solution](src/main/scala/day10) [test](src/test/scala/day10)
