@@ -22,3 +22,5 @@
 [definition](http://adventofcode.com/2017/day/10) [solution](src/main/scala/day10) [test](src/test/scala/day10)
 ### Day 11: Hex Ed
 [definition](http://adventofcode.com/2017/day/11) [solution](src/main/scala/day11) [test](src/test/scala/day11)
+### Day 12: Digital Plumber
+[definition](http://adventofcode.com/2017/day/12) [solution](src/main/scala/day12) [test](src/test/scala/day12)
