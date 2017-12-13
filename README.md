@@ -24,3 +24,5 @@
 [definition](http://adventofcode.com/2017/day/11) [solution](src/main/scala/day11) [test](src/test/scala/day11)
 ### Day 12: Digital Plumber
 [definition](http://adventofcode.com/2017/day/12) [solution](src/main/scala/day12) [test](src/test/scala/day12)
+### Day 13: Packet Scanners
+[definition](http://adventofcode.com/2017/day/13) [solution](src/main/scala/day13) [test](src/test/scala/day13)
