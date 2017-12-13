@@ -1,18 +1,19 @@
 package day13
 
+import scala.Function.tupled
 import scala.collection.immutable.Stream.from
-import scala.math.max
 
 object PacketScanner {
+
   def delay(layers: Seq[(Int, Int)]): Int =
     from(0).find(delay => layersCaught(layers, delay).isEmpty).head
 
   def severity(layers: Seq[(Int, Int)]): Int =
-    layersCaught(layers).map { case (layer, size) => layer * size }.sum
+    layersCaught(layers).map(tupled(_ * _)).sum
 
   def layersCaught(layers: Seq[(Int, Int)], delay: Int = 0): Seq[(Int, Int)] =
-    layers.filter { case (layer, size) => scannerAtStart(size, layer + delay) }
+    layers.filter(tupled((index, size) => caught(index + delay, size)))
 
-  private def scannerAtStart(size: Int, time: Int): Boolean =
-    time % (size + max(size - 2, 0)) == 0
+  private def caught(time: Int, size: Int) =
+    time % (2 * size - 2) == 0
 }
