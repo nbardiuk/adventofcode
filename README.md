@@ -26,3 +26,5 @@
 [definition](http://adventofcode.com/2017/day/12) [solution](src/main/scala/day12) [test](src/test/scala/day12)
 ### Day 13: Packet Scanners
 [definition](http://adventofcode.com/2017/day/13) [solution](src/main/scala/day13) [test](src/test/scala/day13)
+### Day 14: Disk Defragmentation
+[definition](http://adventofcode.com/2017/day/14) [solution](src/main/scala/day14) [test](src/test/scala/day14)
