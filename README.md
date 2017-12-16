@@ -30,3 +30,5 @@
 [definition](http://adventofcode.com/2017/day/14) [solution](src/main/scala/day14) [test](src/test/scala/day14)
 ### Day 15: Dueling Generators
 [definition](http://adventofcode.com/2017/day/15) [solution](src/main/scala/day15) [test](src/test/scala/day15)
+### Day 16: Permutation Promenade
+[definition](http://adventofcode.com/2017/day/16) [solution](src/main/scala/day16) [test](src/test/scala/day16)
