@@ -28,3 +28,5 @@
 [definition](http://adventofcode.com/2017/day/13) [solution](src/main/scala/day13) [test](src/test/scala/day13)
 ### Day 14: Disk Defragmentation
 [definition](http://adventofcode.com/2017/day/14) [solution](src/main/scala/day14) [test](src/test/scala/day14)
+### Day 15: Dueling Generators
+[definition](http://adventofcode.com/2017/day/15) [solution](src/main/scala/day15) [test](src/test/scala/day15)
