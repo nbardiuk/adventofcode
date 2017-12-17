@@ -32,3 +32,5 @@
 [definition](http://adventofcode.com/2017/day/15) [solution](src/main/scala/day15) [test](src/test/scala/day15)
 ### Day 16: Permutation Promenade
 [definition](http://adventofcode.com/2017/day/16) [solution](src/main/scala/day16) [test](src/test/scala/day16)
+### Day 17: Spinlock
+[definition](http://adventofcode.com/2017/day/17) [solution](src/main/scala/day17) [test](src/test/scala/day17)
