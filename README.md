@@ -34,3 +34,5 @@
 [definition](http://adventofcode.com/2017/day/16) [solution](src/main/scala/day16) [test](src/test/scala/day16)
 ### Day 17: Spinlock
 [definition](http://adventofcode.com/2017/day/17) [solution](src/main/scala/day17) [test](src/test/scala/day17)
+### Day 18: Duet
+[definition](http://adventofcode.com/2017/day/18) [solution](src/main/scala/day18) [test](src/test/scala/day18)

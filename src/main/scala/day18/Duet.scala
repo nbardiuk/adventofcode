@@ -1,34 +1,69 @@
 package day18
 
 import scala.annotation.tailrec
+import scala.collection.immutable.Stream.iterate
 import scala.util.parsing.combinator.RegexParsers
 
 object Duet {
 
-  def firstSound(commands: String): Long = {
+  def firstRcv(commands: String): Long = {
     val operations: Seq[Operation] = OperationParser(commands)
 
     @tailrec
-    def loop(index: Int, memory: Map[String, Long], lastSound: Long): Long = {
-      operations(index) match {
-      case Set(r, s) => loop(index + 1, memory.updated(r, readSource(s, memory)), lastSound)
-      case Add(r, s) => loop(index + 1, memory.updated(r, readMemory(r, memory) + readSource(s, memory)), lastSound)
-      case Mul(r, s) => loop(index + 1, memory.updated(r, readMemory(r, memory) * readSource(s, memory)), lastSound)
-      case Mod(r, s) => loop(index + 1, memory.updated(r, readMemory(r, memory) % readSource(s, memory)), lastSound)
-      case Jgz(r, s) => loop(if (readSource(r, memory) == 0) index + 1 else index + readSource(s, memory).toInt, memory, lastSound)
-      case Snd(r) => loop(index + 1, memory, readMemory(r, memory))
-      case Rcv(r) => if (readMemory(r, memory) == 0) loop(index + 1, memory, lastSound) else lastSound
-    }}
+    def loop(i: Int, mem: Map[String, Long], lastSnd: Long): Long = operations(i) match {
+      case Set(r, s) => loop(i + 1, mem.updated(r, read(s, mem)), lastSnd)
+      case Add(r, s) => loop(i + 1, mem.updated(r, read(r, mem) + read(s, mem)), lastSnd)
+      case Mul(r, s) => loop(i + 1, mem.updated(r, read(r, mem) * read(s, mem)), lastSnd)
+      case Mod(r, s) => loop(i + 1, mem.updated(r, read(r, mem) % read(s, mem)), lastSnd)
+      case Jgz(r, s) => loop(i + (if (read(r, mem) <= 0) 1 else read(s, mem).toInt), mem, lastSnd)
+      case Snd(s) => loop(i + 1, mem, read(s, mem))
+      case Rcv(r) => if (read(r, mem) == 0) loop(i + 1, mem, lastSnd) else lastSnd
+    }
 
     loop(0, Map(), 0)
   }
 
-  def readSource(source: Source, memory: Map[String, Long]): Long =
+
+  def secondSent(commands: String): Long = {
+    val operations: Seq[Operation] = OperationParser(commands)
+
+    def runUntilBlocked(p: Program, inbox: Seq[Long]): (Program, Seq[Long]) = {
+      @tailrec
+      def loop(i: Int, mem: Map[String, Long], inbox: Seq[Long], outbox: Seq[Long]): (Program, Seq[Long]) = operations(i) match {
+        case Set(r, s) => loop(i + 1, mem.updated(r, read(s, mem)), inbox, outbox)
+        case Add(r, s) => loop(i + 1, mem.updated(r, read(r, mem) + read(s, mem)), inbox, outbox)
+        case Mul(r, s) => loop(i + 1, mem.updated(r, read(r, mem) * read(s, mem)), inbox, outbox)
+        case Mod(r, s) => loop(i + 1, mem.updated(r, read(r, mem) % read(s, mem)), inbox, outbox)
+        case Jgz(c, s) => loop(i + (if (read(c, mem) <= 0) 1 else read(s, mem).toInt), mem, inbox, outbox)
+        case Snd(s) => loop(i + 1, mem, inbox, outbox :+ read(s, mem))
+        case Rcv(r) => if (inbox.isEmpty) (Program(mem, i), outbox)
+        else loop(i + 1, mem.updated(r, inbox.head), inbox.tail, outbox)
+      }
+
+      loop(p.i, p.mem, inbox, Vector())
+    }
+
+    def untilBlocked(duet: Duet):Duet = {
+      val (p0, q1) = runUntilBlocked(duet.p0, duet.q0)
+      val (p1, q0) = runUntilBlocked(duet.p1, duet.q1)
+      Duet(p0, q0, p1, q1)
+    }
+
+    def notDeadlock(duet: Duet):Boolean = duet.q0.nonEmpty || duet.q1.nonEmpty
+
+    iterate(Duet())(untilBlocked).drop(1).takeWhile(notDeadlock).map(_.q0.size).sum
+  }
+
+  case class Duet(p0: Program = Program(), q0: Seq[Long] = Seq(), p1: Program = Program(Map("p" -> 1)), q1: Seq[Long] = Seq())
+  case class Program(mem: Map[String, Long] = Map(), i: Int = 0)
+
+  def read(source: Source, memory: Map[String, Long]): Long =
     source match {
       case Value(value) => value
-      case Register(name) => readMemory(name, memory)
+      case Register(name) => read(name, memory)
     }
-  def readMemory(register: String, memory: Map[String, Long]): Long = memory.getOrElse(register, 0)
+
+  def read(register: String, memory: Map[String, Long]): Long = memory.getOrElse(register, 0)
 
   object OperationParser extends RegexParsers {
 
@@ -40,13 +75,11 @@ object Duet {
         pair("mul", register, source)(Mul) |
         pair("mod", register, source)(Mod) |
         pair("jgz", source, source)(Jgz) |
-        "snd" ~> register ^^ Snd |
+        "snd" ~> source ^^ Snd |
         "rcv" ~> register ^^ Rcv
 
     def source: Parser[Source] = register ^^ Register | amount ^^ Value
-
     def register: Parser[String] = """[a-z]+""".r ^^ (_.toString)
-
     def amount: Parser[Int] = """-?\d+""".r ^^ (_.toInt)
 
     def apply(text: String): Seq[Operation] = parseAll(operations, text) match {
@@ -61,25 +94,16 @@ object Duet {
   }
 
   sealed trait Operation
-
   case class Set(register: String, source: Source) extends Operation
-
   case class Add(register: String, source: Source) extends Operation
-
   case class Mul(register: String, source: Source) extends Operation
-
   case class Mod(register: String, source: Source) extends Operation
-
-  case class Jgz(register: Source, source: Source) extends Operation
-
-  case class Snd(register: String) extends Operation
-
+  case class Jgz(condition: Source, distance: Source) extends Operation
+  case class Snd(source: Source) extends Operation
   case class Rcv(register: String) extends Operation
 
   sealed trait Source
-
   case class Register(name: String) extends Source
-
   case class Value(value: Int) extends Source
 
 }
