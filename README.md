@@ -38,3 +38,5 @@
 [definition](http://adventofcode.com/2017/day/18) [solution](src/main/scala/day18) [test](src/test/scala/day18)
 ### Day 19: A Series of Tubes
 [definition](http://adventofcode.com/2017/day/19) [solution](src/main/scala/day19) [test](src/test/scala/day19)
+### Day 20: Particle Swarm
+[definition](http://adventofcode.com/2017/day/20) [solution](src/main/scala/day20) [test](src/test/scala/day20)
