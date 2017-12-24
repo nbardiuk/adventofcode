@@ -40,3 +40,5 @@
 [definition](http://adventofcode.com/2017/day/19) [solution](src/main/scala/day19) [test](src/test/scala/day19)
 ### Day 20: Particle Swarm
 [definition](http://adventofcode.com/2017/day/20) [solution](src/main/scala/day20) [test](src/test/scala/day20)
+### Day 21: Fractal Art
+[definition](http://adventofcode.com/2017/day/21) [solution](src/main/scala/day21) [test](src/test/scala/day21)
