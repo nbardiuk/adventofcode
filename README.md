@@ -36,3 +36,5 @@
 [definition](http://adventofcode.com/2017/day/17) [solution](src/main/scala/day17) [test](src/test/scala/day17)
 ### Day 18: Duet
 [definition](http://adventofcode.com/2017/day/18) [solution](src/main/scala/day18) [test](src/test/scala/day18)
+### Day 19: A Series of Tubes
+[definition](http://adventofcode.com/2017/day/19) [solution](src/main/scala/day19) [test](src/test/scala/day19)
