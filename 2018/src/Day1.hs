@@ -1,22 +1,21 @@
 module Day1 where
 
-import           Data.List  (find)
-import           Data.Maybe (fromJust)
-import qualified Data.Set   as Set
+import qualified Data.IntSet as Set
+import           Data.List   (find)
+import           Data.Maybe  (fromJust)
 
-part1 :: [String] -> Integer
-part1 = foldl (flip parse) 0
+part1 :: [String] -> Int
+part1 = sum . map parseInt
 
-part2 :: [String] -> Integer
+part2 :: [String] -> Int
 part2 = fromJust . firstDuplicate . frequencies
-  where frequencies = scanl (flip parse) 0 . cycle
+  where frequencies = scanl (+) 0 . cycle . map parseInt
 
-parse :: String -> Integer -> Integer
-parse ('+' : n) = \i -> i + read n
-parse ('-' : n) = \i -> i - read n
-parse _         = undefined
+parseInt :: String -> Int
+parseInt ('+' : n) = read n
+parseInt n         = read n
 
-firstDuplicate :: Ord a => [a] -> Maybe a
+firstDuplicate :: [Int] -> Maybe Int
 firstDuplicate = (fst <$>) . find (uncurry Set.member) . withSeen
  where
   withSeen as = zip as (seen as)
