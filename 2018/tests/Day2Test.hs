@@ -26,10 +26,10 @@ spec_Day2 = do
     it "example" $ do
       let example =
             ["abcde", "fghij", "klmno", "pqrst", "fguij", "axcye", "wvxyz"]
-      part2 example `shouldBe` "fgij"
+      part2 example `shouldBe` Just "fgij"
 
     it "my input"
       $   (part2 <$> readInput)
-      >>= (`shouldBe` "xpysnnkqrbuhefmcajodplyzw")
+      >>= (`shouldBe` Just "xpysnnkqrbuhefmcajodplyzw")
 
 readInput = lines <$> readFile "data/day2.csv"
