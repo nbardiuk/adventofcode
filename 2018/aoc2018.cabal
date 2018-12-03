@@ -10,24 +10,29 @@ cabal-version:       >=1.10
 
 library
   exposed-modules:
-    Day1
-    Day2
+     Day1
+   , Day2
+   , Day3
   build-depends:
-      base >=4 && <5
-    , containers
-  hs-source-dirs:      src
-  default-language:    Haskell2010
+     base >=4 && <5
+   , containers
+   , megaparsec
+  hs-source-dirs:     src
+  default-language:   Haskell2010
 
 test-suite test
-  default-language:    Haskell2010
-  type:                exitcode-stdio-1.0
-  hs-source-dirs:      tests
-  main-is:             test.hs
+  default-language:   Haskell2010
+  type:               exitcode-stdio-1.0
+  hs-source-dirs:     tests
+  main-is:            test.hs
+  build-tool-depends: tasty-discover:tasty-discover
+  other-modules:
+     Day1Test
+   , Day2Test
+   , Day3Test
   build-depends:
-      aoc2018
-    , base >= 4 && < 5
-    , tasty
-    , tasty-discover
-    , tasty-hspec
-    , tasty-th
+     aoc2018
+   , base >= 4 && < 5
+   , tasty
+   , tasty-hspec
 
