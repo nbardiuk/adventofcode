@@ -35,33 +35,33 @@ sleepHours :: [String] -> [Schedule]
 sleepHours = (merge <$>) . group . sort . schedules . (readLog <$>) . sort
 
 merge :: [Schedule] -> Schedule
-merge ss@((Schedule n _) : _) = Schedule n (Map.unionsWith (+) ((\(Schedule _ d) -> d) <$> ss))
+merge ss@(Schedule n _ : _) = Schedule n (Map.unionsWith (+) ((\(Schedule _ d) -> d) <$> ss))
 merge _ = undefined
 
 schedules :: [Log] -> [Schedule]
-schedules logs = case (many schedule) logs of
+schedules logs = case many schedule logs of
   (ss, _) : _ -> ss
   _           -> []
 
 schedule :: Reads Log Schedule
 schedule = lift2 nightShift begins (many duration)
-  where nightShift guard durations = Schedule guard (Map.unionsWith (+) durations)
+ where nightShift guard durations = Schedule guard (Map.unionsWith (+) durations)
 
 duration :: Reads Log (Map.IntMap Int)
 duration = lift2 timeRange fall woke
-  where timeRange start end = Map.fromList [ (minute, 1) | minute <- [start .. end - 1] ]
+ where timeRange start end = Map.fromList [ (minute, 1) | minute <- [start .. end - 1] ]
 
 begins :: Reads Log Int
-begins ((Log _ (Begins n)) : rest) = [(n, rest)]
-begins _                           = []
+begins (Log _ (Begins n) : rest) = [(n, rest)]
+begins _                         = []
 
 fall :: Reads Log Int
-fall ((Log (_, i) FallsAsleep) : rest) = [(i, rest)]
-fall _                                 = []
+fall (Log (_, i) FallsAsleep : rest) = [(i, rest)]
+fall _                               = []
 
 woke :: Reads Log Int
-woke ((Log (_, i) WakesUp) : rest) = [(i, rest)]
-woke _                             = []
+woke (Log (_, i) WakesUp : rest) = [(i, rest)]
+woke _                           = []
 
 data Action = Begins Int | FallsAsleep | WakesUp deriving Show
 type Time = (Int, Int)
@@ -77,13 +77,13 @@ type Reads i o = [i] -> [(o, [i])]
 
 many :: Reads a b -> Reads a [b]
 many p as = case p as of
-  (b, rest) : _ -> case many p $ rest of
+  (b, rest) : _ -> case many p rest of
     (bs, restMany) : _ -> [(b : bs, restMany)]
     _                  -> [([b], rest)]
   _ -> [([], as)]
 
 lift2 :: (a -> b -> c) -> Reads i a -> Reads i b -> Reads i c
-lift2 f ra rb = \is -> case ra is of
+lift2 f ra rb is = case ra is of
   (a, ais) : _ -> case rb ais of
     (b, rest) : _ -> [(f a b, rest)]
     _             -> []
@@ -94,21 +94,21 @@ readLog = fromJust . parseMaybe logParser
 
 logParser :: Parsec Void String Log
 logParser = do
-  _      <- char '['
-  _      <- some digitChar
-  _      <- char '-'
-  _      <- some digitChar
-  _      <- char '-'
-  _      <- some digitChar
-  _      <- char ' '
+  _ <-
+    char '['
+    *> some digitChar
+    *> char '-'
+    *> some digitChar
+    *> char '-'
+    *> some digitChar
+    *> char ' '
   h      <- decimal
   _      <- char ':'
   m      <- decimal
-  _      <- char ']'
-  _      <- char ' '
+  _      <- string "] "
   action <- choice
     [ const FallsAsleep <$> string "falls asleep"
     , const WakesUp <$> string "wakes up"
-    , Begins <$> (string "Guard #" *> decimal <* (string " begins shift"))
+    , Begins <$> (string "Guard #" *> decimal <* string " begins shift")
     ]
   return (Log (h, m) action)
