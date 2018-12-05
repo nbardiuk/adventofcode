@@ -8,3 +8,5 @@
 [definition](http://adventofcode.com/2018/day/3) [solution](src/Day3.hs) [test](tests/Day3Test.hs)
 ### Day 4: Repose Record
 [definition](http://adventofcode.com/2018/day/4) [solution](src/Day4.hs) [test](tests/Day4Test.hs)
+### Day 5: Alchemical Reduction
+[definition](http://adventofcode.com/2018/day/5) [solution](src/Day5.hs) [test](tests/Day5Test.hs)

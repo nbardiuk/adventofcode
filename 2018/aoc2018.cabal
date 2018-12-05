@@ -14,6 +14,7 @@ library
    , Day2
    , Day3
    , Day4
+   , Day5
   build-depends:
      base >=4 && <5
    , containers
@@ -32,6 +33,7 @@ test-suite test
    , Day2Test
    , Day3Test
    , Day4Test
+   , Day5Test
   build-depends:
      aoc2018
    , base >= 4 && < 5
