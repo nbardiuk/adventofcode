@@ -10,3 +10,5 @@
 [definition](http://adventofcode.com/2018/day/4) [solution](src/Day4.hs) [test](tests/Day4Test.hs)
 ### Day 5: Alchemical Reduction
 [definition](http://adventofcode.com/2018/day/5) [solution](src/Day5.hs) [test](tests/Day5Test.hs)
+### Day 6: Chronal Coordinates
+[definition](http://adventofcode.com/2018/day/6) [solution](src/Day6.hs) [test](tests/Day6Test.hs)
