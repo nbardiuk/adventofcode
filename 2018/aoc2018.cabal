@@ -1,46 +1,63 @@
-name:                aoc2018
-version:             0.1.0.0
-license:             BSD3
-license-file:        LICENSE
-author:              Nazarii Bardiuk
-maintainer:          nazarii@bardiuk.com
-build-type:          Simple
-extra-source-files:  README.md
-cabal-version:       >=1.10
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.1.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 4f2bba24ce5fa0d004d7d45d562ff6f41792f43f0f7adc0a87937abe6d2daa20
+
+name:           aoc2018
+version:        0.1.0.0
+author:         Nazarii Bardiuk
+maintainer:     nazarii@bardiuk.com
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
 
 library
   exposed-modules:
-     Day1
-   , Day2
-   , Day3
-   , Day4
-   , Day5
-   , Day6
-   , Day7
+      Day1
+      Day2
+      Day3
+      Day4
+      Day5
+      Day6
+      Day7
+  other-modules:
+      Paths_aoc2018
+  hs-source-dirs:
+      src
+  ghc-options: -Wall
   build-depends:
-     base >=4 && <5
-   , containers
-   , megaparsec
-  hs-source-dirs:     src
-  default-language:   Haskell2010
+      base >=4 && <5
+    , containers
+    , megaparsec
+  default-language: Haskell2010
 
 test-suite test
-  default-language:   Haskell2010
-  type:               exitcode-stdio-1.0
-  hs-source-dirs:     tests
-  main-is:            test.hs
-  build-tool-depends: tasty-discover:tasty-discover
+  type: exitcode-stdio-1.0
+  main-is: test.hs
   other-modules:
-     Day1Test
-   , Day2Test
-   , Day3Test
-   , Day4Test
-   , Day5Test
-   , Day6Test
-   , Day7Test
+      Day1Test
+      Day2Test
+      Day3Test
+      Day4Test
+      Day5Test
+      Day6Test
+      Day7Test
+      Paths_aoc2018
+  hs-source-dirs:
+      tests
+  ghc-options: -Wall
+  build-tool-depends:
+      tasty-discover:tasty-discover
   build-depends:
-     aoc2018
-   , base >= 4 && < 5
-   , tasty
-   , tasty-hspec
-
+      aoc2018
+    , base >=4 && <5
+    , containers
+    , megaparsec
+    , tasty
+    , tasty-hspec
+  default-language: Haskell2010

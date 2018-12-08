@@ -1,0 +1,29 @@
+name:                aoc2018
+version:             0.1.0.0
+license:             BSD3
+license-file:        LICENSE
+author:              Nazarii Bardiuk
+maintainer:          nazarii@bardiuk.com
+extra-source-files:
+  - README.md
+
+ghc-options: -Wall
+
+dependencies:
+  - base >= 4 && < 5
+  - containers
+  - megaparsec
+
+library:
+  source-dirs: src
+
+tests:
+  test:
+    main: test.hs
+    source-dirs:
+      - tests
+    dependencies:
+      - aoc2018
+      - tasty
+      - tasty-hspec
+    build-tools: tasty-discover:tasty-discover
