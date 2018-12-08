@@ -12,3 +12,5 @@
 [definition](http://adventofcode.com/2018/day/5) [solution](src/Day5.hs) [test](tests/Day5Test.hs)
 ### Day 6: Chronal Coordinates
 [definition](http://adventofcode.com/2018/day/6) [solution](src/Day6.hs) [test](tests/Day6Test.hs)
+### Day 7: The Sum of Its Parts
+[definition](http://adventofcode.com/2018/day/7) [solution](src/Day7.hs) [test](tests/Day7Test.hs)
