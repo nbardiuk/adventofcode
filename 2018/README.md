@@ -14,3 +14,6 @@
 [definition](http://adventofcode.com/2018/day/6) [solution](src/Day6.hs) [test](tests/Day6Test.hs)
 ### Day 7: The Sum of Its Parts
 [definition](http://adventofcode.com/2018/day/7) [solution](src/Day7.hs) [test](tests/Day7Test.hs)
+### Day 8: Memory Maneuver
+[definition](http://adventofcode.com/2018/day/8) [solution](src/Day8.hs) [test](tests/Day8Test.hs)
+
