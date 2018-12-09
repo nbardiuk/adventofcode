@@ -40,7 +40,7 @@ pairP = do
 -----------------------------------------------------------------------------------
 -- Circle
 
-data Circle a = Circle {leftLen:: Int, left:: [a], focus:: a, right:: [a], rightLen:: Int}
+data Circle a = Circle {leftLen:: Int, left:: ![a], focus:: a, right:: ![a], rightLen:: Int}
 
 singleton :: a -> Circle a
 singleton a = Circle 0 [] a [] 0

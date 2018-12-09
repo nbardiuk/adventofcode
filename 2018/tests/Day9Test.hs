@@ -13,6 +13,6 @@ spec_Day9 = do
     it "example 5" $ part1 "21 players; last marble is worth 6111 points" `shouldBe` 54718
     it "example 6" $ part1 "30 players; last marble is worth 5807 points" `shouldBe` 37305
     it "my input1" $ part1 "468 players; last marble is worth 71010 points" `shouldBe` 374287
-    --it "my input2" $ part1 "468 players; last marble is worth 7101000 points" `shouldBe` 3083412635 -- TODO runs ~ 4 sec
+    --it "my input2" $ part1 "468 players; last marble is worth 7101000 points" `shouldBe` 3083412635 -- TODO runs ~ 2 sec
 
 
