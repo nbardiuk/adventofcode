@@ -16,4 +16,6 @@
 [definition](http://adventofcode.com/2018/day/7) [solution](src/Day7.hs) [test](tests/Day7Test.hs)
 ### Day 8: Memory Maneuver
 [definition](http://adventofcode.com/2018/day/8) [solution](src/Day8.hs) [test](tests/Day8Test.hs)
+### Day 9: Marble Mania
+[definition](http://adventofcode.com/2018/day/9) [solution](src/Day9.hs) [test](tests/Day9Test.hs)
 

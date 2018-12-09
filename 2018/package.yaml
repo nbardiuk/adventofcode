@@ -26,4 +26,4 @@ tests:
       - aoc2018
       - tasty
       - tasty-hspec
-    build-tools: tasty-discover:tasty-discover
+      - tasty-discover

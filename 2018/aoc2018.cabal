@@ -1,10 +1,8 @@
-cabal-version: 1.12
-
--- This file has been generated from package.yaml by hpack version 0.31.1.
+-- This file has been generated from package.yaml by hpack version 0.28.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 4798ba0dc7785a128b21996057fff467a09190a77088b157a0488bbedf42b359
+-- hash: a4462a7d618af154b2a3865f34a5c20c430d92e8e7cc4857bf49a58274078e49
 
 name:           aoc2018
 version:        0.1.0.0
@@ -13,6 +11,7 @@ maintainer:     nazarii@bardiuk.com
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
+cabal-version:  >= 1.10
 extra-source-files:
     README.md
 
@@ -26,6 +25,7 @@ library
       Day6
       Day7
       Day8
+      Day9
   other-modules:
       Paths_aoc2018
   hs-source-dirs:
@@ -49,17 +49,17 @@ test-suite test
       Day6Test
       Day7Test
       Day8Test
+      Day9Test
       Paths_aoc2018
   hs-source-dirs:
       tests
   ghc-options: -Wall
-  build-tool-depends:
-      tasty-discover:tasty-discover
   build-depends:
       aoc2018
     , base >=4 && <5
     , containers
     , megaparsec
     , tasty
+    , tasty-discover
     , tasty-hspec
   default-language: Haskell2010
