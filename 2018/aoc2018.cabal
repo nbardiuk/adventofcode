@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a4462a7d618af154b2a3865f34a5c20c430d92e8e7cc4857bf49a58274078e49
+-- hash: c84d83ba4620fd89eacdde4358312a39a48190298f7563f7b01af17f07ba7091
 
 name:           aoc2018
 version:        0.1.0.0
@@ -18,6 +18,7 @@ extra-source-files:
 library
   exposed-modules:
       Day1
+      Day10
       Day2
       Day3
       Day4
@@ -41,6 +42,7 @@ test-suite test
   type: exitcode-stdio-1.0
   main-is: test.hs
   other-modules:
+      Day10Test
       Day1Test
       Day2Test
       Day3Test
