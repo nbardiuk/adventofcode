@@ -18,4 +18,10 @@
 [definition](http://adventofcode.com/2018/day/8) [solution](src/Day8.hs) [test](tests/Day8Test.hs)
 ### Day 9: Marble Mania
 [definition](http://adventofcode.com/2018/day/9) [solution](src/Day9.hs) [test](tests/Day9Test.hs)
+### Day 10: The Stars Align
+[definition](http://adventofcode.com/2018/day/10) [solution](src/Day10.hs) [test](tests/Day10.hs)
+### Day 11: Chronal Charge
+[definition](http://adventofcode.com/2018/day/11) [solution](src/Day11.hs) [test](tests/Day11.hs)
+### Day 12: Subterranean Sustainability
+[definition](http://adventofcode.com/2018/day/12) [solution](src/Day12.hs) [test](tests/Day12.hs)
 
