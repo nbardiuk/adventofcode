@@ -24,4 +24,6 @@
 [definition](http://adventofcode.com/2018/day/11) [solution](src/Day11.hs) [test](tests/Day11.hs)
 ### Day 12: Subterranean Sustainability
 [definition](http://adventofcode.com/2018/day/12) [solution](src/Day12.hs) [test](tests/Day12.hs)
+### Day 13: Mine Cart Madness
+[definition](http://adventofcode.com/2018/day/13) [solution](src/Day13.hs) [test](tests/Day13.hs)
 
