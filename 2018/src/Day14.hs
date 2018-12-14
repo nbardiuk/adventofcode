@@ -1,7 +1,5 @@
 module Day14 where
 
-import           Data.IntMap.Strict             ( IntMap )
-import qualified Data.IntMap.Strict            as IntMap
 import           Data.Char                      ( intToDigit
                                                 , digitToInt
                                                 )
@@ -12,50 +10,55 @@ import           Data.List                      ( isPrefixOf
                                                 )
 import           Data.Maybe                     ( fromJust )
 
+import           Data.Sequence                  ( Seq )
+import qualified Data.Sequence                 as Seq
+
+import           Data.Foldable                  ( toList )
 
 part1 :: Int -> String
 part1 n =
-  tenAfter n $ scores $ head $ dropWhile (\b -> len b < n + 10) $ iterate
-    step
-    start
+  tenAfter n
+    $ scores
+    $ head
+    $ dropWhile (\b -> (Seq.length $ scores b) < n + 10)
+    $ iterate step start
 
 part2 :: String -> Int
 part2 s = indexWith (digitToInt <$> s) $ iterate step start
 
-tenAfter :: Int -> IntMap Int -> String
-tenAfter n scores = intToDigit <$> (take 10 $ drop n $ IntMap.elems scores)
+tenAfter :: Int -> Seq Int -> String
+tenAfter n scores = intToDigit <$> (take 10 $ drop n $ toList scores)
 
 indexWith :: [Int] -> [Board] -> Int
 indexWith pattern boards =
-  let rp = reverse pattern
-      lp = length pattern
+  let lp = length pattern
   in  fromJust
       $   indexOf pattern
-      $   IntMap.elems
+      $   toList
       $   fromJust
-      $   find (subm rp lp)
+      $   find (subm pattern lp)
       $   scores
       <$> boards
  where
-  subm rp lp m =
-    let lst = take (lp + 1) $ snd <$> IntMap.toDescList m
-    in  ((rp == tail lst) || (rp == init lst))
+  subm p lp m =
+    let lst = toList $ Seq.drop (Seq.length m - lp - 1) m
+    in  (p == tail lst) || (p == init lst)
 
 indexOf :: [Int] -> [Int] -> Maybe Int
 indexOf pattern scores = findIndex (isPrefixOf pattern) (tails scores)
 
-data Board = Board {a::Int, b::Int, scores:: !(IntMap Int) , len::Int} deriving (Show)
+data Board = Board {a::Int, b::Int, scores:: !(Seq Int)} deriving (Show)
 start :: Board
-start = Board 0 1 (IntMap.fromList $ zip [0 ..] [3, 7]) 2
+start = Board 0 1 (Seq.fromList [3, 7])
 
 step :: Board -> Board
-step (Board a b scores l) =
-  let nextScores = IntMap.union scores $ IntMap.fromList $ zip [l ..] digs
-      len        = length digs + l
-      va         = scores IntMap.! a
-      vb         = scores IntMap.! b
+step (Board a b scores) =
+  let nextScores = scores Seq.>< (Seq.fromList digs)
+      len        = Seq.length nextScores
+      va         = fromJust $ Seq.lookup a scores
+      vb         = fromJust $ Seq.lookup b scores
       digs       = digits (va + vb)
-  in  Board (mod (a + va + 1) len) (mod (b + vb + 1) len) nextScores len
+  in  Board (mod (a + va + 1) len) (mod (b + vb + 1) len) nextScores
 
 digits i = case divMod i 10 of
   (0, m) -> [m]
