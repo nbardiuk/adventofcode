@@ -26,4 +26,6 @@
 [definition](http://adventofcode.com/2018/day/12) [solution](src/Day12.hs) [test](tests/Day12.hs)
 ### Day 13: Mine Cart Madness
 [definition](http://adventofcode.com/2018/day/13) [solution](src/Day13.hs) [test](tests/Day13.hs)
+### Day 14: Chocolate Charts
+[definition](http://adventofcode.com/2018/day/14) [solution](src/Day14.hs) [test](tests/Day14.hs)
 

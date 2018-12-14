@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 1208b2e8eb2bc9403ff429cef9db130abafe0c464e74547288e2d1f43c4baf3a
+-- hash: 1de7319859cfe5f98c63a57e7beb2a2a045e7cd3ed1b52c3673574e23a550781
 
 name:           aoc2018
 version:        0.1.0.0
@@ -22,6 +22,7 @@ library
       Day11
       Day12
       Day13
+      Day14
       Day2
       Day3
       Day4
@@ -49,6 +50,7 @@ test-suite test
       Day11Test
       Day12Test
       Day13Test
+      Day14Test
       Day1Test
       Day2Test
       Day3Test
