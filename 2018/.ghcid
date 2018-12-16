@@ -1,0 +1,1 @@
+--command "stack ghci aoc2018:lib aoc2018:test"
