@@ -30,3 +30,5 @@
 [definition](http://adventofcode.com/2018/day/14) [solution](src/Day14.hs) [test](tests/Day14.hs)
 ### Day 15: Beverage Bandits
 [definition](http://adventofcode.com/2018/day/15) [solution](src/Day15.hs) [test](tests/Day15.hs)
+### Day 16: Chronal Classification
+[definition](http://adventofcode.com/2018/day/16) [solution](src/Day16.hs) [test](tests/Day16.hs)
