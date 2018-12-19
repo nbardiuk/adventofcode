@@ -34,3 +34,5 @@
 [definition](http://adventofcode.com/2018/day/16) [solution](src/Day16.hs) [test](tests/Day16.hs)
 ### Day 17: Reservoir Research
 [definition](http://adventofcode.com/2018/day/17) [solution](src/Day17.hs) [test](tests/Day17.hs)
+### Day 18: Settlers of The North Pole
+[definition](http://adventofcode.com/2018/day/18) [solution](src/Day18.hs) [test](tests/Day18.hs)
