@@ -32,3 +32,5 @@
 [definition](http://adventofcode.com/2018/day/15) [solution](src/Day15.hs) [test](tests/Day15.hs)
 ### Day 16: Chronal Classification
 [definition](http://adventofcode.com/2018/day/16) [solution](src/Day16.hs) [test](tests/Day16.hs)
+### Day 17: Reservoir Research
+[definition](http://adventofcode.com/2018/day/17) [solution](src/Day17.hs) [test](tests/Day17.hs)
