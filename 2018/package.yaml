@@ -12,7 +12,9 @@ ghc-options: -Wall
 dependencies:
   - base >= 4 && < 5
   - containers
+  - heap
   - megaparsec
+  - memoize
 
 library:
   source-dirs: src

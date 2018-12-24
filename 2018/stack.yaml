@@ -2,3 +2,6 @@ resolver: lts-12.18
 
 nix:
   enable: true
+
+extra-deps:
+  - memoize-0.8.1
