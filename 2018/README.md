@@ -36,3 +36,17 @@
 [definition](http://adventofcode.com/2018/day/17) [solution](src/Day17.hs) [test](tests/Day17.hs)
 ### Day 18: Settlers of The North Pole
 [definition](http://adventofcode.com/2018/day/18) [solution](src/Day18.hs) [test](tests/Day18.hs)
+### Day 19: Go With The Flow
+[definition](http://adventofcode.com/2018/day/19) [solution](src/Day19.hs) [test](tests/Day19.hs)
+### Day 20: A Regular Map
+[definition](http://adventofcode.com/2018/day/20) [solution](src/Day20.hs) [test](tests/Day20.hs)
+### Day 21: Chronal Conversion
+[definition](http://adventofcode.com/2018/day/21) [solution](src/Day21.hs) [test](tests/Day21.hs)
+### Day 22: Mode Maze
+[definition](http://adventofcode.com/2018/day/22) [solution](src/Day22.hs) [test](tests/Day22.hs)
+### Day 23: Experimental Emergency Teleportation
+[definition](http://adventofcode.com/2018/day/23) [solution](src/Day23.hs) [test](tests/Day23.hs)
+### Day 24: Immune System Simulator 20XX
+[definition](http://adventofcode.com/2018/day/24) [solution](src/Day24.hs) [test](tests/Day24.hs)
+### Day 25: Four-Dimensional Adventure
+[definition](http://adventofcode.com/2018/day/25) [solution](src/Day25.hs) [test](tests/Day25.hs)
