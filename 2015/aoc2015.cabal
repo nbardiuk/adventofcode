@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f7587ce918dc0f9cc2c9ab1ec9e3c3108378e2c0e381a437656009b45282dbb6
+-- hash: 106a530d0748d6463103c716259e35a246ee925c6a533f098e38bdcdbfd806b4
 
 name:           aoc2015
 version:        0.1.0.0
@@ -28,6 +28,7 @@ source-repository head
 library
   exposed-modules:
       Day1
+      Day2
   other-modules:
       Paths_aoc2015
   hs-source-dirs:
@@ -36,6 +37,7 @@ library
   build-depends:
       base >=4.7 && <5
     , containers
+    , megaparsec
   default-language: Haskell2010
 
 test-suite test
@@ -43,6 +45,7 @@ test-suite test
   main-is: test.hs
   other-modules:
       Day1Test
+      Day2Test
       Paths_aoc2015
   hs-source-dirs:
       test
@@ -51,6 +54,7 @@ test-suite test
       aoc2015
     , base >=4.7 && <5
     , containers
+    , megaparsec
     , tasty
     , tasty-discover
     , tasty-hspec
