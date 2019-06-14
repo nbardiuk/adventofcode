@@ -1,8 +1,10 @@
--- This file has been generated from package.yaml by hpack version 0.28.2.
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 2a553ed0d2f4442c0d647950178b32ab1d2b04e03a830c3f202c10eda234168f
+-- hash: dabf6da3dd2662542aa55a951e634d059a3b8e51e8efeec4d1c0b145da9fae20
 
 name:           aoc2018
 version:        0.1.0.0
@@ -11,7 +13,6 @@ maintainer:     nazarii@bardiuk.com
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
-cabal-version:  >= 1.10
 extra-source-files:
     README.md
 
