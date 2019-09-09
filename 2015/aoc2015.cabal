@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 780917103d5c7fdaf6170aee0997aba28e8a50d753774505ef7135a6bd831989
+-- hash: 220dbd82a93336c5a79a001ddd38eb9ee83ca439289bcbdb8281eefd79dd9280
 
 name:           aoc2015
 version:        0.1.0.0
@@ -32,13 +32,15 @@ library
       Day3
       Day4
       Day5
+      Day6
   other-modules:
       Paths_aoc2015
   hs-source-dirs:
       src
   ghc-options: -Wall
   build-depends:
-      base >=4.7 && <5
+      array
+    , base >=4.7 && <5
     , bytestring
     , containers
     , cryptohash
@@ -54,12 +56,14 @@ test-suite test
       Day3Test
       Day4Test
       Day5Test
+      Day6Test
       Paths_aoc2015
   hs-source-dirs:
       test
   ghc-options: -Wall -O3 -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aoc2015
+    , array
     , base >=4.7 && <5
     , bytestring
     , containers

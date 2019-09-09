@@ -23,6 +23,7 @@ ghc-options: -Wall
 
 dependencies:
   - base >= 4.7 && < 5
+  - array
   - bytestring
   - containers
   - cryptohash
