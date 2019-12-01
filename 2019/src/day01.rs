@@ -7,7 +7,7 @@ pub fn part2(input: &str) -> u32 {
 }
 
 fn numbers<'a>(text: &'a str) -> impl Iterator<Item = u32> + 'a {
-    text.lines().filter_map(|l| l.parse::<u32>().ok())
+    text.lines().filter_map(|line| line.parse::<u32>().ok())
 }
 
 fn fuel_simple(mass: u32) -> u32 {
