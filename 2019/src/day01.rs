@@ -33,11 +33,10 @@ mod spec {
     }
 
     #[test]
-    fn fuel_part1() {
-        assert_eq!(fuel_simple(12), 2);
-        assert_eq!(fuel_simple(14), 2);
-        assert_eq!(fuel_simple(1969), 654);
-        assert_eq!(fuel_simple(100756), 33583);
+    fn fuel_simple_from_examples() {
+        for &(mass, fuel) in &[(12, 2), (14, 2), (1969, 654), (100756, 33583)] {
+            assert_eq!(fuel_simple(mass), fuel);
+        }
     }
 
     #[test]
@@ -46,10 +45,10 @@ mod spec {
     }
 
     #[test]
-    fn fuel_part2() {
-        assert_eq!(fuel_self_lifting(12), 2);
-        assert_eq!(fuel_self_lifting(1969), 966);
-        assert_eq!(fuel_self_lifting(100756), 50346);
+    fn fuel_self_lifting_from_examples() {
+        for &(mass, fuel) in &[(12, 2), (14, 2), (1969, 966), (100756, 50346)] {
+            assert_eq!(fuel_self_lifting(mass), fuel);
+        }
     }
 
     #[test]
