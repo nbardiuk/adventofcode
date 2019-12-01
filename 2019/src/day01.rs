@@ -1,8 +1,8 @@
-fn part1(input: &str) -> u32 {
+pub fn part1(input: &str) -> u32 {
     numbers(input).map(fuel_simple).sum()
 }
 
-fn part2(input: &str) -> u32 {
+pub fn part2(input: &str) -> u32 {
     numbers(input).map(fuel_self_lifting).sum()
 }
 
