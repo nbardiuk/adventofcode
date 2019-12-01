@@ -24,13 +24,6 @@ fn fuel_self_lifting(mass: u32) -> u32 {
 #[cfg(test)]
 mod spec {
     use super::*;
-    use std::fs::read_to_string;
-    use std::path::Path;
-
-    fn my_input() -> String {
-        let day = Path::new(file!()).file_stem().unwrap().to_string_lossy();
-        read_to_string(format!("./res/{}.txt", day)).expect("Cannot read input file")
-    }
 
     #[test]
     fn fuel_simple_from_examples() {
@@ -54,5 +47,9 @@ mod spec {
     #[test]
     fn part2_my_input() {
         assert_eq!(part2(&my_input()), 5051054);
+    }
+
+    fn my_input() -> String {
+        std::fs::read_to_string("./res/day01.txt").expect("Cannot read my input")
     }
 }
