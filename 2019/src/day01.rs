@@ -1,13 +1,13 @@
 fn part1(input: &str) -> u32 {
-    numbers(input).into_iter().map(fuel_simple).sum()
+    numbers(input).map(fuel_simple).sum()
 }
 
 fn part2(input: &str) -> u32 {
-    numbers(input).into_iter().map(fuel_self_lifting).sum()
+    numbers(input).map(fuel_self_lifting).sum()
 }
 
-fn numbers(text: &str) -> Vec<u32> {
-    text.lines().filter_map(|l| l.parse::<u32>().ok()).collect()
+fn numbers<'a>(text: &'a str) -> impl Iterator<Item = u32> + 'a {
+    text.lines().filter_map(|l| l.parse::<u32>().ok())
 }
 
 fn fuel_simple(mass: u32) -> u32 {
