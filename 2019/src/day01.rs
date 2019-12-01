@@ -25,6 +25,8 @@ fn fuel_self_lifting(mass: u32) -> u32 {
 mod spec {
     use super::*;
 
+    const INPUT: &str = include_str!("../res/day01.txt");
+
     #[test]
     fn fuel_simple_from_examples() {
         for &(mass, fuel) in &[(12, 2), (14, 2), (1969, 654), (100756, 33583)] {
@@ -34,7 +36,7 @@ mod spec {
 
     #[test]
     fn part1_my_input() {
-        assert_eq!(part1(&my_input()), 3369286);
+        assert_eq!(part1(INPUT), 3369286);
     }
 
     #[test]
@@ -46,10 +48,6 @@ mod spec {
 
     #[test]
     fn part2_my_input() {
-        assert_eq!(part2(&my_input()), 5051054);
-    }
-
-    fn my_input() -> String {
-        std::fs::read_to_string("./res/day01.txt").expect("Cannot read my input")
+        assert_eq!(part2(INPUT), 5051054);
     }
 }
