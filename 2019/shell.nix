@@ -17,6 +17,7 @@ in
     name = "moz_overlay_shell";
     buildInputs = [
       rust
+      gnuplot
     ];
     RUST_SRC_PATH="${rust}/lib/rustlib/src/rust/src";
   }
