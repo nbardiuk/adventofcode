@@ -1,13 +1,13 @@
 fn part1(input: &str) -> u32 {
-    parse_input(input).into_iter().map(fuel_simple).sum()
+    numbers(input).into_iter().map(fuel_simple).sum()
 }
 
 fn part2(input: &str) -> u32 {
-    parse_input(input).into_iter().map(fuel_self_lifting).sum()
+    numbers(input).into_iter().map(fuel_self_lifting).sum()
 }
 
-fn parse_input(s: &str) -> Vec<u32> {
-    s.lines().filter_map(|l| l.parse::<u32>().ok()).collect()
+fn numbers(text: &str) -> Vec<u32> {
+    text.lines().filter_map(|l| l.parse::<u32>().ok()).collect()
 }
 
 fn fuel_simple(mass: u32) -> u32 {
@@ -24,14 +24,12 @@ fn fuel_self_lifting(mass: u32) -> u32 {
 #[cfg(test)]
 mod spec {
     use super::*;
-    use std::fs::File;
-    use std::io::prelude::*;
+    use std::fs::read_to_string;
+    use std::path::Path;
 
     fn my_input() -> String {
-        let mut file = File::open("./res/day01.txt").unwrap();
-        let mut input = String::new();
-        file.read_to_string(&mut input).unwrap();
-        input
+        let day = Path::new(file!()).file_stem().unwrap().to_string_lossy();
+        read_to_string(format!("./res/{}.txt", day)).expect("Cannot read input file")
     }
 
     #[test]
