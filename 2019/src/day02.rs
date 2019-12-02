@@ -19,26 +19,22 @@ fn numbers(text: &str) -> Vec<usize> {
     text.split(',').filter_map(|num| num.parse().ok()).collect()
 }
 
-fn execute(memory: Vec<usize>) -> Vec<usize> {
-    let mut state = (memory, Some(0));
-    while let (memory, Some(pointer)) = state {
-        state = iteration(memory, pointer);
+fn execute(mut memory: Vec<usize>) -> Vec<usize> {
+    let size = 4;
+    let mut pointer = 0;
+    loop {
+        match memory[pointer..(pointer + size).min(memory.len())] {
+            [1, in_a, in_b, out] => {
+                memory[out] = memory[in_a] + memory[in_b];
+            }
+            [2, in_a, in_b, out] => {
+                memory[out] = memory[in_a] * memory[in_b];
+            }
+            _ => break,
+        };
+        pointer += size;
     }
-    state.0
-}
-
-fn iteration(mut memory: Vec<usize>, pointer: usize) -> (Vec<usize>, Option<usize>) {
-    match memory[pointer..(pointer + 4).min(memory.len())] {
-        [1, in_a, in_b, out] => {
-            memory[out] = memory[in_a] + memory[in_b];
-            (memory, Some(pointer + 4))
-        }
-        [2, in_a, in_b, out] => {
-            memory[out] = memory[in_a] * memory[in_b];
-            (memory, Some(pointer + 4))
-        }
-        _ => (memory, None),
-    }
+    memory
 }
 
 #[cfg(test)]
@@ -46,41 +42,25 @@ mod spec {
     use super::*;
 
     #[test]
-    fn iteration_addition() {
-        let (memory, pointer) = iteration(vec![1, 0, 0, 0, 99], 0);
-
-        assert_eq!(memory, [2, 0, 0, 0, 99]);
-        assert_eq!(pointer, Some(4));
+    fn addition() {
+        assert_eq!(execute(vec![1, 0, 0, 0, 99]), [2, 0, 0, 0, 99]);
     }
 
     #[test]
-    fn iteration_multiplication() {
-        let (memory, pointer) = iteration(vec![2, 3, 0, 3, 99], 0);
-
-        assert_eq!(memory, [2, 3, 0, 6, 99]);
-        assert_eq!(pointer, Some(4));
+    fn multiplication() {
+        assert_eq!(execute(vec![2, 3, 0, 3, 99]), [2, 3, 0, 6, 99]);
     }
 
     #[test]
-    fn iteration_halting() {
-        let (memory, pointer) = iteration(vec![99], 0);
-
-        assert_eq!(memory, [99]);
-        assert_eq!(pointer, None);
+    fn overriding_instruction() {
+        let result = execute(vec![1, 1, 1, 4, 99, 5, 6, 0, 99]);
+        assert_eq!(result, [30, 1, 1, 4, 2, 5, 6, 0, 99]);
     }
 
     #[test]
-    fn execution_halting() {
-        let memory = execute(vec![2, 4, 4, 5, 99, 0]);
-
-        assert_eq!(memory, [2, 4, 4, 5, 99, 9801]);
-    }
-
-    #[test]
-    fn execution_overriding_instruction() {
-        let memory = execute(vec![1, 1, 1, 4, 99, 5, 6, 0, 99]);
-
-        assert_eq!(memory, [30, 1, 1, 4, 2, 5, 6, 0, 99]);
+    fn initial_example() {
+        let result = execute(vec![1, 9, 10, 3, 2, 3, 11, 0, 99, 30, 40, 50]);
+        assert_eq!(result, [3500, 9, 10, 70, 2, 3, 11, 0, 99, 30, 40, 50]);
     }
 
     #[test]
