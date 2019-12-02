@@ -1,7 +1,21 @@
 pub fn part1(input: &str) -> usize {
-    let mut memory = numbers(input);
-    memory[1] = 12;
-    memory[2] = 2;
+    program(12, 2, numbers(input))
+}
+
+pub fn part2(input: &str) -> usize {
+    for noun in 0..99 {
+        for verb in 0..99 {
+            if 19_690_720 == program(noun, verb, numbers(input)) {
+                return noun * 100 + verb;
+            }
+        }
+    }
+    0
+}
+
+fn program(noun: usize, verb: usize, mut memory: Vec<usize>) -> usize {
+    memory[1] = noun;
+    memory[2] = verb;
     execute(memory)[0]
 }
 
@@ -100,5 +114,10 @@ mod spec {
     #[test]
     fn part1_my_input() {
         assert_eq!(part1(INPUT), 4570637);
+    }
+
+    #[test]
+    fn part2_my_input() {
+        assert_eq!(part2(INPUT), 5485);
     }
 }
