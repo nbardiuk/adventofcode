@@ -4,15 +4,7 @@ pub fn part1(input: &str) -> usize {
 
 pub fn part2(input: &str) -> Option<usize> {
     let memory = numbers(input);
-
-    for noun in 0..=99 {
-        for verb in 0..=99 {
-            if 19_690_720 == run(noun, verb, memory.clone()) {
-                return Some(noun * 100 + verb);
-            }
-        }
-    }
-    None
+    (0..10000).find(|i| 1969_07_20 == run(i / 100, i % 100, memory.clone()))
 }
 
 fn run(noun: usize, verb: usize, mut memory: Vec<usize>) -> usize {
