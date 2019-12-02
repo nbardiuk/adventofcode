@@ -28,12 +28,12 @@ fn execute(memory: Vec<usize>) -> Vec<usize> {
 }
 
 fn iteration(mut memory: Vec<usize>, pointer: usize) -> (Vec<usize>, Option<usize>) {
-    match memory.get(pointer..pointer + 4) {
-        Some(&[1, in_a, in_b, out]) => {
+    match memory[pointer..(pointer + 4).min(memory.len())] {
+        [1, in_a, in_b, out] => {
             memory[out] = memory[in_a] + memory[in_b];
             (memory, Some(pointer + 4))
         }
-        Some(&[2, in_a, in_b, out]) => {
+        [2, in_a, in_b, out] => {
             memory[out] = memory[in_a] * memory[in_b];
             (memory, Some(pointer + 4))
         }
