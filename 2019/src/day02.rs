@@ -1,3 +1,5 @@
+pub const INPUT: &str = include_str!("../res/day02.txt");
+
 pub fn part1(input: &str) -> usize {
     run(12, 2, numbers(input))
 }
@@ -44,7 +46,6 @@ fn iteration(mut memory: Vec<usize>, pointer: usize) -> (Vec<usize>, Option<usiz
 #[cfg(test)]
 mod spec {
     use super::*;
-    const INPUT: &str = include_str!("../res/day02.txt");
 
     #[test]
     fn iteration_addition() {

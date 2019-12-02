@@ -1,3 +1,5 @@
+pub const INPUT: &str = include_str!("../res/day01.txt");
+
 pub fn part1(input: &str) -> u32 {
     numbers(input).map(fuel_simple).sum()
 }
@@ -24,8 +26,6 @@ fn fuel_self_lifting(mass: u32) -> u32 {
 #[cfg(test)]
 mod spec {
     use super::*;
-
-    const INPUT: &str = include_str!("../res/day01.txt");
 
     #[test]
     fn fuel_simple_from_examples() {
