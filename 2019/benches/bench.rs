@@ -16,5 +16,9 @@ pub fn day02(c: &mut Criterion) {
     c.bench_function("day02::part2", |b| b.iter(|| part2(input)));
 }
 
-criterion_group!(benches, day01, day02);
+criterion_group! {
+    name = benches;
+    config = Criterion::default().noise_threshold(0.07);
+    targets = day01, day02
+}
 criterion_main!(benches);
