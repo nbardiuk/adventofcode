@@ -16,9 +16,7 @@ fn run(noun: usize, verb: usize, mut memory: Vec<usize>) -> usize {
 }
 
 fn numbers(text: &str) -> Vec<usize> {
-    text.split(',')
-        .filter_map(|num| num.parse::<usize>().ok())
-        .collect()
+    text.split(',').filter_map(|num| num.parse().ok()).collect()
 }
 
 fn execute(memory: Vec<usize>) -> Vec<usize> {
