@@ -1,21 +1,21 @@
 pub fn part1(input: &str) -> usize {
-    program(12, 2, numbers(input))
+    run(12, 2, numbers(input))
 }
 
-pub fn part2(input: &str) -> usize {
+pub fn part2(input: &str) -> Option<usize> {
     let memory = numbers(input);
 
     for noun in 0..=99 {
         for verb in 0..=99 {
-            if 19_690_720 == program(noun, verb, memory.clone()) {
-                return noun * 100 + verb;
+            if 19_690_720 == run(noun, verb, memory.clone()) {
+                return Some(noun * 100 + verb);
             }
         }
     }
-    0
+    None
 }
 
-fn program(noun: usize, verb: usize, mut memory: Vec<usize>) -> usize {
+fn run(noun: usize, verb: usize, mut memory: Vec<usize>) -> usize {
     memory[1] = noun;
     memory[2] = verb;
     execute(memory)[0]
@@ -35,18 +35,16 @@ fn execute(memory: Vec<usize>) -> Vec<usize> {
     state.0
 }
 
-fn iteration(memory: Vec<usize>, pointer: usize) -> (Vec<usize>, Option<usize>) {
-    fn eval(op: fn(usize, usize) -> usize, mut memory: Vec<usize>, pointer: usize) -> Vec<usize> {
-        let a = memory[memory[pointer + 1]];
-        let b = memory[memory[pointer + 2]];
-        let dest = memory[pointer + 3];
-        memory[dest] = op(a, b);
-        memory
-    };
-
-    match memory[pointer] {
-        1 => (eval(|a, b| a + b, memory, pointer), Some(pointer + 4)),
-        2 => (eval(|a, b| a * b, memory, pointer), Some(pointer + 4)),
+fn iteration(mut memory: Vec<usize>, pointer: usize) -> (Vec<usize>, Option<usize>) {
+    match memory.get(pointer..pointer + 4) {
+        Some(&[1, in_a, in_b, out]) => {
+            memory[out] = memory[in_a] + memory[in_b];
+            (memory, Some(pointer + 4))
+        }
+        Some(&[2, in_a, in_b, out]) => {
+            memory[out] = memory[in_a] * memory[in_b];
+            (memory, Some(pointer + 4))
+        }
         _ => (memory, None),
     }
 }
@@ -101,6 +99,6 @@ mod spec {
 
     #[test]
     fn part2_my_input() {
-        assert_eq!(part2(INPUT), 5485);
+        assert_eq!(part2(INPUT), Some(5485));
     }
 }
