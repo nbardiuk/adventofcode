@@ -5,8 +5,8 @@ pub fn part1(input: &str) -> usize {
 pub fn part2(input: &str) -> usize {
     let memory = numbers(input);
 
-    for noun in 0..99 {
-        for verb in 0..99 {
+    for noun in 0..=99 {
+        for verb in 0..=99 {
             if 19_690_720 == program(noun, verb, memory.clone()) {
                 return noun * 100 + verb;
             }
