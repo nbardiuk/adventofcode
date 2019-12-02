@@ -28,13 +28,11 @@ fn numbers(text: &str) -> Vec<usize> {
 }
 
 fn execute(memory: Vec<usize>) -> Vec<usize> {
-    fn go(memory: Vec<usize>, pointer: usize) -> Vec<usize> {
-        match iteration(memory, pointer) {
-            (memory, None) => memory,
-            (memory, Some(pointer)) => go(memory, pointer),
-        }
-    };
-    go(memory, 0)
+    let mut state = (memory, Some(0));
+    while let (memory, Some(pointer)) = state {
+        state = iteration(memory, pointer);
+    }
+    state.0
 }
 
 fn iteration(memory: Vec<usize>, pointer: usize) -> (Vec<usize>, Option<usize>) {
