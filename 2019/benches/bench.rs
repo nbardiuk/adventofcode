@@ -1,20 +1,20 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 
-pub fn day01(c: &mut Criterion) {
-    use aoc2019::day01::{part1, part2};
-    let input = include_str!("../res/day01.txt");
+macro_rules! day {
+    ($day:ident) => {
+        pub fn $day(c: &mut Criterion) {
+            use aoc2019::$day::{part1, part2};
+            let input = include_str!(concat!("../res/", stringify!($day), ".txt"));
 
-    c.bench_function("day01::part1", |b| b.iter(|| part1(input)));
-    c.bench_function("day01::part2", |b| b.iter(|| part2(input)));
+            let day = stringify!($day);
+            c.bench_function(&format!("{}::part1", day), |b| b.iter(|| part1(input)));
+            c.bench_function(&format!("{}::part2", day), |b| b.iter(|| part2(input)));
+        }
+    };
 }
 
-pub fn day02(c: &mut Criterion) {
-    use aoc2019::day02::{part1, part2};
-    let input = include_str!("../res/day02.txt");
-
-    c.bench_function("day02::part1", |b| b.iter(|| part1(input)));
-    c.bench_function("day02::part2", |b| b.iter(|| part2(input)));
-}
+day! { day01 }
+day! { day02 }
 
 criterion_group! {
     name = benches;
