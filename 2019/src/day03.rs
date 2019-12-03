@@ -1,35 +1,37 @@
 pub const INPUT: &str = include_str!("../res/day03.txt");
 
-pub fn part1(input: &str) -> Option<usize> {
-    solve(input, |a, b| {
-        a.intersects(&b).map(|i| i.distance_to(&Point::new(0, 0)))
+pub fn part1(input: &str) -> Option<i32> {
+    solve(input, |cross, _, _| Point::new(0, 0).distance_to(cross))
+}
+
+pub fn part2(input: &str) -> Option<i32> {
+    solve(input, |cross, a, b| {
+        a.distance + a.start.distance_to(cross) + b.distance + b.start.distance_to(cross)
     })
 }
 
-pub fn part2(input: &str) -> Option<usize> {
-    solve(input, |a, b| {
-        a.intersects(&b)
-            .map(|i| a.distance + a.start.distance_to(&i) + b.distance + b.start.distance_to(&i))
-    })
-}
-
-fn solve(input: &str, distance: fn(&Segment, &Segment) -> Option<usize>) -> Option<usize> {
+fn solve(input: &str, distance: fn(&Point, &Segment, &Segment) -> i32) -> Option<i32> {
     let wires = input
         .lines()
-        .map(|line| build_path(parse_commands(line)))
+        .map(|line| build_path(parse_directoins(line)))
         .collect::<Vec<_>>();
 
-    if let [a, b] = wires.as_slice() {
-        a.iter()
-            .flat_map(|ia| b.iter().filter_map(move |ib| distance(ia, ib)))
-            .filter(|distance| *distance != 0)
-            .min()
+    if let [left, right] = wires.as_slice() {
+        let mut distances = vec![];
+        for left_segment in left {
+            for right_segment in right {
+                if let Some(cross) = left_segment.cross(&right_segment) {
+                    distances.push(distance(&cross, left_segment, right_segment));
+                }
+            }
+        }
+        distances.into_iter().filter(|d| *d != 0).min()
     } else {
         None
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 struct Point {
     x: i32,
     y: i32,
@@ -38,19 +40,18 @@ impl Point {
     fn new(x: i32, y: i32) -> Self {
         Point { x, y }
     }
-    fn distance_to(&self, point: &Point) -> usize {
-        ((self.x - point.x).abs() + (self.y - point.y).abs()) as usize
+    fn distance_to(&self, point: &Point) -> i32 {
+        (self.x - point.x).abs() + (self.y - point.y).abs()
     }
 }
 
-#[derive(Debug)]
 struct Segment {
-    distance: usize,
+    distance: i32,
     start: Point,
     end: Point,
 }
 impl Segment {
-    fn new(distance: usize, start: Point, end: Point) -> Self {
+    fn new(distance: i32, start: Point, end: Point) -> Self {
         Segment {
             distance,
             start,
@@ -58,7 +59,7 @@ impl Segment {
         }
     }
 
-    fn intersect_at(&self, other: &Segment, projection: fn(&Point) -> i32) -> Option<i32> {
+    fn cross_projection(&self, other: &Segment, projection: fn(&Point) -> i32) -> Option<i32> {
         let minmax = |a, b| if a <= b { (a, b) } else { (b, a) };
         let (a_left, a_right) = minmax(projection(&self.start), projection(&self.end));
         let (b_left, b_right) = minmax(projection(&other.start), projection(&other.end));
@@ -70,10 +71,10 @@ impl Segment {
         }
     }
 
-    fn intersects(&self, other: &Segment) -> Option<Point> {
+    fn cross(&self, other: &Segment) -> Option<Point> {
         if let (Some(x), Some(y)) = (
-            self.intersect_at(other, |p| p.x),
-            self.intersect_at(other, |p| p.y),
+            self.cross_projection(other, |p| p.x),
+            self.cross_projection(other, |p| p.y),
         ) {
             Some(Point::new(x, y))
         } else {
@@ -82,39 +83,37 @@ impl Segment {
     }
 }
 
-#[derive(Debug)]
 enum Direction {
-    L,
-    R,
-    U,
-    D,
+    L(i32),
+    R(i32),
+    U(i32),
+    D(i32),
 }
 
-fn parse_commands<'a>(line: &'a str) -> impl Iterator<Item = (Direction, usize)> + 'a {
+fn parse_directoins<'a>(line: &'a str) -> impl Iterator<Item = Direction> + 'a {
     line.split(',').filter_map(|val| {
         let (dir, num) = val.split_at(1);
-        let direction = match dir {
-            "U" => Some(Direction::U),
-            "R" => Some(Direction::R),
-            "L" => Some(Direction::L),
-            "D" => Some(Direction::D),
-            _ => return None,
-        };
-        let distance = num.parse().ok();
-        Some((direction?, distance?))
+        let distance = num.parse().ok()?;
+        match dir {
+            "U" => Some(Direction::U(distance)),
+            "R" => Some(Direction::R(distance)),
+            "L" => Some(Direction::L(distance)),
+            "D" => Some(Direction::D(distance)),
+            _ => None,
+        }
     })
 }
 
-fn build_path(commands: impl Iterator<Item = (Direction, usize)>) -> Vec<Segment> {
+fn build_path(directoins: impl Iterator<Item = Direction>) -> Vec<Segment> {
     let mut start = Point::new(0, 0);
     let mut total_distance = 0;
     let mut result = vec![];
-    for (directon, distance) in commands {
-        let end = match directon {
-            Direction::U => Point::new(start.x, start.y - distance as i32),
-            Direction::D => Point::new(start.x, start.y + distance as i32),
-            Direction::L => Point::new(start.x - distance as i32, start.y),
-            Direction::R => Point::new(start.x + distance as i32, start.y),
+    for directon in directoins {
+        let (end, distance) = match directon {
+            Direction::U(dist) => (Point::new(start.x, start.y - dist), dist),
+            Direction::D(dist) => (Point::new(start.x, start.y + dist), dist),
+            Direction::L(dist) => (Point::new(start.x - dist, start.y), dist),
+            Direction::R(dist) => (Point::new(start.x + dist, start.y), dist),
         };
         result.push(Segment::new(total_distance, start, end.clone()));
         start = end;
