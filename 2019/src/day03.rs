@@ -1,56 +1,27 @@
 pub const INPUT: &str = include_str!("../res/day03.txt");
 
 pub fn part1(input: &str) -> Option<usize> {
+    solve(input, |a, b| {
+        a.intersects(&b).map(|i| i.distance_to(&Point::new(0, 0)))
+    })
+}
+
+pub fn part2(input: &str) -> Option<usize> {
+    solve(input, |a, b| {
+        a.intersects(&b)
+            .map(|i| a.distance + a.start.distance_to(&i) + b.distance + b.start.distance_to(&i))
+    })
+}
+
+fn solve(input: &str, distance: fn(&Segment, &Segment) -> Option<usize>) -> Option<usize> {
     let wires = input
         .lines()
-        .map(|line| {
-            line.split(',')
-                .filter_map(parse_command)
-                .collect::<Vec<_>>()
-        })
-        .map(|commands| {
-            let mut from = (0, 0);
-            let mut result = vec![];
-            for command in commands {
-                let to = match (command, from) {
-                    ((Direction::U, dist), (x, y)) => (x, y - dist as i32),
-                    ((Direction::D, dist), (x, y)) => (x, y + dist as i32),
-                    ((Direction::L, dist), (x, y)) => (x - dist as i32, y),
-                    ((Direction::R, dist), (x, y)) => (x + dist as i32, y),
-                };
-                result.push((from, to));
-                from = to;
-            }
-            result
-        })
+        .map(|line| build_path(parse_commands(line)))
         .collect::<Vec<_>>();
-    if let [first, second] = wires.as_slice() {
-        first
-            .iter()
-            .flat_map(|a| {
-                second.iter().filter_map(move |b| {
-                    fn intersection(a1: i32, a2: i32, b1: i32, b2: i32) -> Option<i32> {
-                        let (amin, amax) = (a1.min(a2), a1.max(a2));
-                        let (bmin, bmax) = (b1.min(b2), b1.max(b2));
-                        let (left, right) = (amin.max(bmin), amax.min(bmax));
-                        if left <= right {
-                            Some(left)
-                        } else {
-                            None
-                        }
-                    }
-                    let ((ax1, ay1), (ax2, ay2)) = *a;
-                    let ((bx1, by1), (bx2, by2)) = *b;
-                    if let (Some(x), Some(y)) = (
-                        intersection(ax1, ax2, bx1, bx2),
-                        intersection(ay1, ay2, by1, by2),
-                    ) {
-                        Some(x.abs() as usize + y.abs() as usize)
-                    } else {
-                        None
-                    }
-                })
-            })
+
+    if let [a, b] = wires.as_slice() {
+        a.iter()
+            .flat_map(|ia| b.iter().filter_map(move |ib| distance(ia, ib)))
             .filter(|distance| *distance != 0)
             .min()
     } else {
@@ -58,65 +29,56 @@ pub fn part1(input: &str) -> Option<usize> {
     }
 }
 
-pub fn part2(input: &str) -> Option<usize> {
-    let wires = input
-        .lines()
-        .map(|line| {
-            line.split(',')
-                .filter_map(parse_command)
-                .collect::<Vec<_>>()
-        })
-        .map(|commands| {
-            let mut from = (0, 0);
-            let mut total_distance = 0;
-            let mut result = vec![];
-            for command in commands {
-                let to = match (&command, from) {
-                    (&(Direction::U, dist), (x, y)) => (x, y - dist as i32),
-                    (&(Direction::D, dist), (x, y)) => (x, y + dist as i32),
-                    (&(Direction::L, dist), (x, y)) => (x - dist as i32, y),
-                    (&(Direction::R, dist), (x, y)) => (x + dist as i32, y),
-                };
-                result.push(((from, to), total_distance));
-                total_distance += command.1;
-                from = to;
-            }
-            result
-        })
-        .collect::<Vec<_>>();
-    if let [first, second] = wires.as_slice() {
-        first
-            .iter()
-            .flat_map(|a| {
-                second.iter().filter_map(move |b| {
-                    fn intersection(a1: i32, a2: i32, b1: i32, b2: i32) -> Option<i32> {
-                        let (amin, amax) = (a1.min(a2), a1.max(a2));
-                        let (bmin, bmax) = (b1.min(b2), b1.max(b2));
-                        let (left, right) = (amin.max(bmin), amax.min(bmax));
-                        if left <= right {
-                            Some(left)
-                        } else {
-                            None
-                        }
-                    }
-                    let (((ax1, ay1), (ax2, ay2)), adist) = *a;
-                    let (((bx1, by1), (bx2, by2)), bdist) = *b;
-                    if let (Some(x), Some(y)) = (
-                        intersection(ax1, ax2, bx1, bx2),
-                        intersection(ay1, ay2, by1, by2),
-                    ) {
-                        let dist =
-                            (x - ax1).abs() + (x - bx1).abs() + (y - ay1).abs() + (y - by1).abs();
-                        Some(adist + bdist + dist as usize)
-                    } else {
-                        None
-                    }
-                })
-            })
-            .filter(|distance| *distance != 0)
-            .min()
-    } else {
-        None
+#[derive(Debug, Clone)]
+struct Point {
+    x: i32,
+    y: i32,
+}
+impl Point {
+    fn new(x: i32, y: i32) -> Self {
+        Point { x, y }
+    }
+    fn distance_to(&self, point: &Point) -> usize {
+        ((self.x - point.x).abs() + (self.y - point.y).abs()) as usize
+    }
+}
+
+#[derive(Debug)]
+struct Segment {
+    distance: usize,
+    start: Point,
+    end: Point,
+}
+impl Segment {
+    fn new(distance: usize, start: Point, end: Point) -> Self {
+        Segment {
+            distance,
+            start,
+            end,
+        }
+    }
+
+    fn intersect_at(&self, other: &Segment, projection: fn(&Point) -> i32) -> Option<i32> {
+        let minmax = |a, b| if a <= b { (a, b) } else { (b, a) };
+        let (a_left, a_right) = minmax(projection(&self.start), projection(&self.end));
+        let (b_left, b_right) = minmax(projection(&other.start), projection(&other.end));
+        let (left, right) = (a_left.max(b_left), a_right.min(b_right));
+        if left <= right {
+            Some(left)
+        } else {
+            None
+        }
+    }
+
+    fn intersects(&self, other: &Segment) -> Option<Point> {
+        if let (Some(x), Some(y)) = (
+            self.intersect_at(other, |p| p.x),
+            self.intersect_at(other, |p| p.y),
+        ) {
+            Some(Point::new(x, y))
+        } else {
+            None
+        }
     }
 }
 
@@ -128,15 +90,37 @@ enum Direction {
     D,
 }
 
-fn parse_command(txt: &str) -> Option<(Direction, usize)> {
-    let result = match txt.split_at(1) {
-        ("U", num) => (Direction::U, num.parse().ok()?),
-        ("R", num) => (Direction::R, num.parse().ok()?),
-        ("L", num) => (Direction::L, num.parse().ok()?),
-        ("D", num) => (Direction::D, num.parse().ok()?),
-        _ => return None,
-    };
-    Some(result)
+fn parse_commands<'a>(line: &'a str) -> impl Iterator<Item = (Direction, usize)> + 'a {
+    line.split(',').filter_map(|val| {
+        let (dir, num) = val.split_at(1);
+        let direction = match dir {
+            "U" => Some(Direction::U),
+            "R" => Some(Direction::R),
+            "L" => Some(Direction::L),
+            "D" => Some(Direction::D),
+            _ => return None,
+        };
+        let distance = num.parse().ok();
+        Some((direction?, distance?))
+    })
+}
+
+fn build_path(commands: impl Iterator<Item = (Direction, usize)>) -> Vec<Segment> {
+    let mut start = Point::new(0, 0);
+    let mut total_distance = 0;
+    let mut result = vec![];
+    for (directon, distance) in commands {
+        let end = match directon {
+            Direction::U => Point::new(start.x, start.y - distance as i32),
+            Direction::D => Point::new(start.x, start.y + distance as i32),
+            Direction::L => Point::new(start.x - distance as i32, start.y),
+            Direction::R => Point::new(start.x + distance as i32, start.y),
+        };
+        result.push(Segment::new(total_distance, start, end.clone()));
+        start = end;
+        total_distance += distance;
+    }
+    result
 }
 
 #[cfg(test)]
