@@ -8,44 +8,37 @@ pub fn part2((from, to): (usize, usize)) -> usize {
 }
 
 fn matches_part1(number: usize) -> bool {
-    let mut prev = 0;
-    let mut has_pair = false;
-    for digit in digits(number) {
-        if prev > digit {
-            return false; // not growing
-        };
-        if prev == digit {
-            has_pair = true;
-        }
-        prev = digit;
-    }
-    has_pair
+    let digits = digits_of(number);
+    let is_sorted = || (&digits).windows(2).all(|w| w[0] <= w[1]);
+    let has_pairs = || groups_sizes(&digits).iter().any(|&g| g >= 2);
+    is_sorted() && has_pairs()
 }
 
 fn matches_part2(number: usize) -> bool {
-    let mut group = (0, 0);
-    let mut has_pair = false;
-    for digit in digits(number) {
-        group = match group {
-            (prev, count) => {
-                if prev > digit {
-                    return false; // not growing
-                };
-                if prev == digit {
-                    (prev, count + 1)
-                } else {
-                    if count == 2 {
-                        has_pair = true;
-                    }
-                    (digit, 1)
-                }
-            }
-        }
-    }
-    has_pair || (group.1 == 2)
+    let digits = digits_of(number);
+    let is_sorted = || (&digits).windows(2).all(|w| w[0] <= w[1]);
+    let has_pairs = || groups_sizes(&digits).iter().any(|&g| g == 2);
+    is_sorted() && has_pairs()
 }
 
-fn digits(mut number: usize) -> Vec<usize> {
+fn groups_sizes(values: &[usize]) -> Vec<usize> {
+    let mut groups = vec![];
+    let mut group = 0;
+    let mut last = None;
+    for &value in values {
+        if group == 0 || last == Some(value) {
+            group += 1;
+        } else {
+            groups.push(group);
+            group = 1;
+        }
+        last = Some(value)
+    }
+    groups.push(group);
+    groups
+}
+
+fn digits_of(mut number: usize) -> Vec<usize> {
     let mut result = vec![];
     while number > 0 {
         result.push(number % 10);
@@ -61,9 +54,9 @@ mod spec {
 
     #[test]
     fn test_digits() {
-        assert_eq!(digits(111111), vec!(1, 1, 1, 1, 1, 1));
-        assert_eq!(digits(12), vec!(1, 2));
-        assert_eq!(digits(10), vec!(1, 0));
+        assert_eq!(digits_of(111111), vec!(1, 1, 1, 1, 1, 1));
+        assert_eq!(digits_of(12), vec!(1, 2));
+        assert_eq!(digits_of(10), vec!(1, 0));
     }
 
     #[test]
@@ -72,12 +65,13 @@ mod spec {
         assert_eq!(matches_part1(223450), false, "not growing");
         assert_eq!(matches_part1(123789), false, "does not have pair");
     }
+
     #[test]
     fn examples_part2() {
-        assert_eq!(matches_part2(123456), false, "does not have pair");
         assert_eq!(matches_part2(112233), true, "growing groups");
-        assert_eq!(matches_part2(123444), false, "more than 2 in group");
-        assert_eq!(matches_part2(111122), true, "4 elements are 2 groups");
+        assert_eq!(matches_part2(111122), true, "has a pair");
+        assert_eq!(matches_part2(123456), false, "does not have pair");
+        assert_eq!(matches_part2(123444), false, "more than 2 in the group");
     }
 
     #[test]
