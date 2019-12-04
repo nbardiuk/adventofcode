@@ -1,20 +1,10 @@
-pub const INPUT: &str = "171309-643603";
+pub const INPUT: (usize, usize) = (171309, 643603);
 
-pub fn part1(input: &str) -> usize {
-    if let [from, to] = input.split('-').collect::<Vec<_>>().as_slice() {
-        if let (Ok(from), Ok(to)) = (from.parse(), to.parse()) {
-            return (from..=to).filter(|&n| matches_part1(n)).count();
-        }
-    };
-    0
+pub fn part1((from, to): (usize, usize)) -> usize {
+    (from..=to).filter(|&n| matches_part1(n)).count()
 }
-pub fn part2(input: &str) -> usize {
-    if let [from, to] = input.split('-').collect::<Vec<_>>().as_slice() {
-        if let (Ok(from), Ok(to)) = (from.parse(), to.parse()) {
-            return (from..=to).filter(|&n| matches_part2(n)).count();
-        }
-    };
-    0
+pub fn part2((from, to): (usize, usize)) -> usize {
+    (from..=to).filter(|&n| matches_part2(n)).count()
 }
 
 fn matches_part1(number: usize) -> bool {
