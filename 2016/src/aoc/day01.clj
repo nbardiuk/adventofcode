@@ -1,6 +1,5 @@
 (ns aoc.day01
-  (:require [clojure.string :as cs]
-            ))
+  (:require [clojure.string :as cs]))
 
 (defn words [line] (cs/split line #", "))
 
@@ -39,12 +38,12 @@
                 (map #(-> [from-x %]) (xrange from-y to-y)))]
     [(concat result trace) [to-x to-y]]))
 
-(defn contains [[ x xs ]] (some #(= x %) xs))
+(defn seen? [[ x xs ]] (contains? xs x))
 
 (defn first-duplicate [items]
-  (let [inits (reductions conj '() items)
+  (let [inits (reductions conj #{} items)
         with-inits (map vector items inits)
-        [result] (first (filter contains with-inits))]
+        [result] (first (filter seen? with-inits))]
     result))
 
 (defn part2 [input]
