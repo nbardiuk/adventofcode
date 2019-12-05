@@ -1,6 +1,6 @@
 (ns aoc.day01-test
   (:require [clojure.test :refer [deftest testing is]]
-            [aoc.day01 :refer [part1]]))
+            [aoc.day01 :refer [part1 part2]]))
 
 (def input (slurp "./resources/day01.txt"))
 
@@ -11,3 +11,9 @@
     (is (= (part1 "R5, L5, R5, R3") 12)))
   (testing "my input"
     (is (= (part1 input) 241))))
+
+(deftest day1-part2
+  (testing "example"
+    (is (= (part2 "R8, R4, R4, R8") 4)))
+  (testing "my input"
+    (is (= (part2 input) 116))))
