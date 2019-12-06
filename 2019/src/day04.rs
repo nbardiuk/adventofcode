@@ -39,7 +39,7 @@ fn groups_sizes(values: &[u8]) -> Vec<usize> {
 }
 
 fn digits_of(mut number: usize) -> Vec<u8> {
-    let mut result = vec![];
+    let mut result = Vec::with_capacity(6);
     while number > 0 {
         result.push((number % 10) as u8);
         number /= 10;
