@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::collections::LinkedList;
+use std::collections::VecDeque;
 
 pub const INPUT: &str = include_str!("../res/day06.txt");
 
@@ -30,7 +30,7 @@ pub fn part2(input: &str) -> usize {
     }
 
     let mut distances = HashMap::new();
-    let mut queue = LinkedList::new();
+    let mut queue = VecDeque::new();
     queue.push_back(("YOU", 0));
     while queue.front().is_some() {
         let (node, distance) = queue.pop_front().unwrap();
