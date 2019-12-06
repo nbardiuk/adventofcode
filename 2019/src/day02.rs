@@ -1,3 +1,5 @@
+use rayon::prelude::*;
+
 pub const INPUT: &str = include_str!("../res/day02.txt");
 
 pub fn part1(input: &str) -> usize {
@@ -6,7 +8,9 @@ pub fn part1(input: &str) -> usize {
 
 pub fn part2(input: &str) -> Option<usize> {
     let memory = numbers(input);
-    (0..10000).find(|i| 1969_07_20 == run(i / 100, i % 100, memory.clone()))
+    (0 as usize..10000)
+        .into_par_iter()
+        .find_any(|i| 1969_07_20 == run(i / 100, i % 100, memory.clone()))
 }
 
 fn run(noun: usize, verb: usize, mut memory: Vec<usize>) -> usize {
