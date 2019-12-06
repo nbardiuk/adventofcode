@@ -1,10 +1,18 @@
+use rayon::prelude::*;
+
 pub const INPUT: (u32, u32) = (171309, 643603);
 
 pub fn part1((from, to): (u32, u32)) -> usize {
-    (from..=to).filter(|&n| matches_part1(n)).count()
+    (from..=to)
+        .into_par_iter()
+        .filter(|&n| matches_part1(n))
+        .count()
 }
 pub fn part2((from, to): (u32, u32)) -> usize {
-    (from..=to).filter(|&n| matches_part2(n)).count()
+    (from..=to)
+        .into_par_iter()
+        .filter(|&n| matches_part2(n))
+        .count()
 }
 
 fn matches_part1(number: u32) -> bool {
