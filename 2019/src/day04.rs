@@ -21,7 +21,7 @@ fn matches_part2(number: usize) -> bool {
     is_sorted() && has_pairs()
 }
 
-fn groups_sizes(values: &[usize]) -> Vec<usize> {
+fn groups_sizes(values: &[u8]) -> Vec<usize> {
     let mut groups = vec![];
     let mut group = 0;
     let mut last = None;
@@ -38,10 +38,10 @@ fn groups_sizes(values: &[usize]) -> Vec<usize> {
     groups
 }
 
-fn digits_of(mut number: usize) -> Vec<usize> {
+fn digits_of(mut number: usize) -> Vec<u8> {
     let mut result = vec![];
     while number > 0 {
-        result.push(number % 10);
+        result.push((number % 10) as u8);
         number /= 10;
     }
     result.reverse();
