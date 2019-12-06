@@ -1,31 +1,43 @@
-use rayon::prelude::*;
-
 pub const INPUT: (u32, u32) = (171309, 643603);
 
-pub fn part1((from, to): (u32, u32)) -> usize {
-    (from..=to)
-        .into_par_iter()
-        .filter(|&n| matches_part1(n))
-        .count()
-}
-pub fn part2((from, to): (u32, u32)) -> usize {
-    (from..=to)
-        .into_par_iter()
-        .filter(|&n| matches_part2(n))
-        .count()
+pub fn part1(input: (u32, u32)) -> usize {
+    solve(input, matches_part1)
 }
 
-fn matches_part1(number: u32) -> bool {
-    let digits = digits_of(number);
-    let is_sorted = || (&digits).windows(2).all(|w| w[0] <= w[1]);
-    let has_pairs = || has_group_size(&digits, |g| g >= 2);
+pub fn part2(input: (u32, u32)) -> usize {
+    solve(input, matches_part2)
+}
+
+pub fn solve((from, to): (u32, u32), matches: fn(&[u8]) -> bool) -> usize {
+    let (mut from, to) = (digits_of(from), digits_of(to));
+    let mut count = 0;
+    while from != to {
+        if matches(&from) {
+            count += 1;
+        }
+
+        //next number
+        let mut i = from.len();
+        let mut carry = 1;
+        while carry > 0 {
+            i -= 1;
+            from[i] += carry;
+            carry = from[i] / 10;
+            from[i] %= 10;
+        }
+    }
+    count
+}
+
+fn matches_part1(digits: &[u8]) -> bool {
+    let is_sorted = || digits.windows(2).all(|w| w[0] <= w[1]);
+    let has_pairs = || has_group_size(digits, |g| g >= 2);
     is_sorted() && has_pairs()
 }
 
-fn matches_part2(number: u32) -> bool {
-    let digits = digits_of(number);
-    let is_sorted = || (&digits).windows(2).all(|w| w[0] <= w[1]);
-    let has_pairs = || has_group_size(&digits, |g| g == 2);
+fn matches_part2(digits: &[u8]) -> bool {
+    let is_sorted = || digits.windows(2).all(|w| w[0] <= w[1]);
+    let has_pairs = || has_group_size(digits, |g| g == 2);
     is_sorted() && has_pairs()
 }
 
@@ -69,17 +81,29 @@ mod spec {
 
     #[test]
     fn examples_part1() {
-        assert_eq!(matches_part1(111111), true);
-        assert_eq!(matches_part1(223450), false, "not growing");
-        assert_eq!(matches_part1(123789), false, "does not have pair");
+        assert_eq!(matches_part1(&[1, 1, 1, 1, 1, 1]), true);
+        assert_eq!(matches_part1(&[2, 2, 3, 4, 5, 0]), false, "not growing");
+        assert_eq!(
+            matches_part1(&[1, 2, 3, 7, 8, 9]),
+            false,
+            "does not have pair"
+        );
     }
 
     #[test]
     fn examples_part2() {
-        assert_eq!(matches_part2(112233), true, "growing groups");
-        assert_eq!(matches_part2(111122), true, "has a pair");
-        assert_eq!(matches_part2(123456), false, "does not have pair");
-        assert_eq!(matches_part2(123444), false, "more than 2 in the group");
+        assert_eq!(matches_part2(&[1, 1, 2, 2, 3, 3]), true, "growing groups");
+        assert_eq!(matches_part2(&[1, 1, 1, 1, 2, 2]), true, "has a pair");
+        assert_eq!(
+            matches_part2(&[1, 2, 3, 4, 5, 6]),
+            false,
+            "does not have pair"
+        );
+        assert_eq!(
+            matches_part2(&[1, 2, 3, 4, 4, 4]),
+            false,
+            "more than 2 in the group"
+        );
     }
 
     #[test]
