@@ -1,44 +1,44 @@
-pub const INPUT: (usize, usize) = (171309, 643603);
+pub const INPUT: (u32, u32) = (171309, 643603);
 
-pub fn part1((from, to): (usize, usize)) -> usize {
+pub fn part1((from, to): (u32, u32)) -> usize {
     (from..=to).filter(|&n| matches_part1(n)).count()
 }
-pub fn part2((from, to): (usize, usize)) -> usize {
+pub fn part2((from, to): (u32, u32)) -> usize {
     (from..=to).filter(|&n| matches_part2(n)).count()
 }
 
-fn matches_part1(number: usize) -> bool {
+fn matches_part1(number: u32) -> bool {
     let digits = digits_of(number);
     let is_sorted = || (&digits).windows(2).all(|w| w[0] <= w[1]);
-    let has_pairs = || groups_sizes(&digits).iter().any(|&g| g >= 2);
+    let has_pairs = || has_group_size(&digits, |g| g >= 2);
     is_sorted() && has_pairs()
 }
 
-fn matches_part2(number: usize) -> bool {
+fn matches_part2(number: u32) -> bool {
     let digits = digits_of(number);
     let is_sorted = || (&digits).windows(2).all(|w| w[0] <= w[1]);
-    let has_pairs = || groups_sizes(&digits).iter().any(|&g| g == 2);
+    let has_pairs = || has_group_size(&digits, |g| g == 2);
     is_sorted() && has_pairs()
 }
 
-fn groups_sizes(values: &[u8]) -> Vec<usize> {
-    let mut groups = vec![];
+fn has_group_size(values: &[u8], p: fn(u8) -> bool) -> bool {
     let mut group = 0;
     let mut last = None;
-    for &value in values {
+    for value in values {
         if group == 0 || last == Some(value) {
             group += 1;
         } else {
-            groups.push(group);
+            if p(group) {
+                return true;
+            };
             group = 1;
         }
         last = Some(value)
     }
-    groups.push(group);
-    groups
+    p(group)
 }
 
-fn digits_of(mut number: usize) -> Vec<u8> {
+fn digits_of(mut number: u32) -> Vec<u8> {
     let mut result = Vec::with_capacity(6);
     while number > 0 {
         result.push((number % 10) as u8);
