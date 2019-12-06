@@ -43,11 +43,10 @@ pub fn part2(input: &str) -> usize {
 
 fn split_pairs(input: &str) -> impl Iterator<Item = (&str, &str)> {
     input.lines().filter_map(|line| {
-        if let [a, b] = line.split(')').collect::<Vec<_>>()[..] {
-            Some((a, b))
-        } else {
-            None
-        }
+        let mut elems = line.split(')');
+        let a = elems.next()?;
+        let b = elems.next()?;
+        Some((a, b))
     })
 }
 
