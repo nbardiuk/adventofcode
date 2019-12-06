@@ -4,57 +4,51 @@ use std::collections::VecDeque;
 pub const INPUT: &str = include_str!("../res/day06.txt");
 
 pub fn part1(input: &str) -> usize {
-    let mut tree: HashMap<&str, Vec<&str>> = HashMap::new();
-    for &(a, b) in split_pairs(input).iter() {
+    let mut tree = HashMap::new();
+    for (a, b) in split_pairs(input) {
         tree.entry(a).or_insert_with(|| vec![]).push(b);
     }
 
     fn recur(node: &str, level: usize, tree: &HashMap<&str, Vec<&str>>) -> usize {
-        if let Some(children) = tree.get(node) {
-            children
-                .iter()
-                .map(|child| level + recur(child, level + 1, tree))
-                .sum()
-        } else {
-            0
-        }
+        tree.get(node)
+            .unwrap_or(&vec![])
+            .iter()
+            .map(|child| level + recur(child, level + 1, tree))
+            .sum()
     }
     recur("COM", 1, &tree)
 }
 
 pub fn part2(input: &str) -> usize {
-    let mut graph: HashMap<&str, Vec<&str>> = HashMap::new();
-    for &(a, b) in split_pairs(input).iter() {
+    let mut graph = HashMap::new();
+    for (a, b) in split_pairs(input) {
         graph.entry(a).or_insert_with(|| vec![]).push(b);
         graph.entry(b).or_insert_with(|| vec![]).push(a);
     }
 
-    let mut distances = HashMap::new();
+    let mut distances = HashMap::<&str, usize>::new();
     let mut queue = VecDeque::new();
     queue.push_back(("YOU", 0));
-    while queue.front().is_some() {
-        let (node, distance) = queue.pop_front().unwrap();
+    while let Some((node, distance)) = queue.pop_front() {
         distances.insert(node, distance);
-        for neighbour in graph.get(node).unwrap_or(&vec![]) {
-            if !distances.contains_key(neighbour) {
-                queue.push_back((neighbour, distance + 1));
-            }
-        }
+        graph
+            .get(node)
+            .unwrap_or(&vec![])
+            .iter()
+            .filter(|&neighbour| !distances.contains_key(neighbour))
+            .for_each(|neighbour| queue.push_back((neighbour, distance + 1)));
     }
-    distances.get("SAN").copied().unwrap() - 2
+    distances.get("SAN").unwrap() - 2
 }
 
-fn split_pairs(input: &str) -> Vec<(&str, &str)> {
-    input
-        .lines()
-        .filter_map(|line| {
-            if let [a, b] = line.split(')').collect::<Vec<_>>()[..] {
-                Some((a, b))
-            } else {
-                None
-            }
-        })
-        .collect()
+fn split_pairs(input: &str) -> impl Iterator<Item = (&str, &str)> {
+    input.lines().filter_map(|line| {
+        if let [a, b] = line.split(')').collect::<Vec<_>>()[..] {
+            Some((a, b))
+        } else {
+            None
+        }
+    })
 }
 
 #[cfg(test)]
@@ -64,7 +58,19 @@ mod spec {
     #[test]
     fn part1_exmple() {
         assert_eq!(
-            part1("COM)B\nB)C\nC)D\nD)E\nE)F\nB)G\nG)H\nD)I\nE)J\nJ)K\nK)L"),
+            part1(
+                "COM)B\n\
+                 B)C\n\
+                 C)D\n\
+                 D)E\n\
+                 E)F\n\
+                 B)G\n\
+                 G)H\n\
+                 D)I\n\
+                 E)J\n\
+                 J)K\n\
+                 K)L"
+            ),
             42
         );
     }
@@ -77,7 +83,21 @@ mod spec {
     #[test]
     fn part2_exmple() {
         assert_eq!(
-            part2("COM)B\nB)C\nC)D\nD)E\nE)F\nB)G\nG)H\nD)I\nE)J\nJ)K\nK)L\nK)YOU\nI)SAN"),
+            part2(
+                "COM)B\n\
+                 B)C\n\
+                 C)D\n\
+                 D)E\n\
+                 E)F\n\
+                 B)G\n\
+                 G)H\n\
+                 D)I\n\
+                 E)J\n\
+                 J)K\n\
+                 K)L\n\
+                 K)YOU\n\
+                 I)SAN"
+            ),
             4
         );
     }
