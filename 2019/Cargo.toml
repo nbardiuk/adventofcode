@@ -6,6 +6,7 @@ edition = "2018"
 
 [dependencies]
 rayon = "1.1"
+itertools = "0.8.2"
 
 [dev-dependencies]
 criterion = "*"
