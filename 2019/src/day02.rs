@@ -1,71 +1,29 @@
+use crate::intcode;
 use rayon::prelude::*;
 
 pub const INPUT: &str = include_str!("../res/day02.txt");
 
-pub fn part1(input: &str) -> usize {
-    run(12, 2, numbers(input))
+pub fn part1(input: &str) -> i32 {
+    run(12, 2, intcode::parse(input))
 }
 
-pub fn part2(input: &str) -> Option<usize> {
-    let memory = numbers(input);
-    (0 as usize..10000)
+pub fn part2(input: &str) -> Option<i32> {
+    let memory = intcode::parse(input);
+    (0..10000)
         .into_par_iter()
         .find_any(|i| 1969_07_20 == run(i / 100, i % 100, memory.clone()))
 }
 
-fn run(noun: usize, verb: usize, mut memory: Vec<usize>) -> usize {
+fn run(noun: i32, verb: i32, mut memory: Vec<i32>) -> i32 {
     memory[1] = noun;
     memory[2] = verb;
-    execute(memory)[0]
-}
-
-fn numbers(text: &str) -> Vec<usize> {
-    text.split(',').filter_map(|num| num.parse().ok()).collect()
-}
-
-fn execute(mut memory: Vec<usize>) -> Vec<usize> {
-    let size = 4;
-    let mut pointer = 0;
-    loop {
-        match memory[pointer..(pointer + size).min(memory.len())] {
-            [1, in_a, in_b, out] => {
-                memory[out] = memory[in_a] + memory[in_b];
-            }
-            [2, in_a, in_b, out] => {
-                memory[out] = memory[in_a] * memory[in_b];
-            }
-            _ => break,
-        };
-        pointer += size;
-    }
-    memory
+    intcode::execute(&mut memory, 0);
+    memory[0]
 }
 
 #[cfg(test)]
 mod spec {
     use super::*;
-
-    #[test]
-    fn addition() {
-        assert_eq!(execute(vec![1, 0, 0, 0, 99]), [2, 0, 0, 0, 99]);
-    }
-
-    #[test]
-    fn multiplication() {
-        assert_eq!(execute(vec![2, 3, 0, 3, 99]), [2, 3, 0, 6, 99]);
-    }
-
-    #[test]
-    fn overriding_instruction() {
-        let result = execute(vec![1, 1, 1, 4, 99, 5, 6, 0, 99]);
-        assert_eq!(result, [30, 1, 1, 4, 2, 5, 6, 0, 99]);
-    }
-
-    #[test]
-    fn initial_example() {
-        let result = execute(vec![1, 9, 10, 3, 2, 3, 11, 0, 99, 30, 40, 50]);
-        assert_eq!(result, [3500, 9, 10, 70, 2, 3, 11, 0, 99, 30, 40, 50]);
-    }
 
     #[test]
     fn part1_my_input() {
