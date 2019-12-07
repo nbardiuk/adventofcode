@@ -3,14 +3,14 @@ use crate::intcode;
 pub const INPUT: &str = include_str!("../res/day05.txt");
 
 pub fn part1(input: &str) -> i32 {
-    intcode::execute(&mut intcode::parse(input), 1)
+    intcode::execute(&mut intcode::parse(input), &[1])
         .last()
         .cloned()
         .unwrap()
 }
 
 pub fn part2(input: &str) -> i32 {
-    intcode::execute(&mut intcode::parse(input), 5)
+    intcode::execute(&mut intcode::parse(input), &[5])
         .last()
         .cloned()
         .unwrap()

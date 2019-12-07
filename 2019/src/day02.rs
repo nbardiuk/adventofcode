@@ -17,7 +17,7 @@ pub fn part2(input: &str) -> Option<i32> {
 fn run(noun: i32, verb: i32, mut memory: Vec<i32>) -> i32 {
     memory[1] = noun;
     memory[2] = verb;
-    intcode::execute(&mut memory, 0);
+    intcode::execute(&mut memory, &[]);
     memory[0]
 }
 

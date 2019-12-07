@@ -1,6 +1,7 @@
-pub fn execute(program: &mut [i32], input: i32) -> Vec<i32> {
+pub fn execute(program: &mut [i32], input: &[i32]) -> Vec<i32> {
     let mut output = vec![];
     let mut pointer = 0;
+    let mut input_index = 0;
     loop {
         let operation = program[pointer];
 
@@ -29,7 +30,8 @@ pub fn execute(program: &mut [i32], input: i32) -> Vec<i32> {
             }
             3 => {
                 let out = arg_out(1);
-                program[out] = input;
+                program[out] = input[input_index];
+                input_index += 1;
                 pointer += 2;
             }
             4 => {
@@ -77,7 +79,7 @@ mod spec {
     use super::*;
 
     fn memory(program: &mut [i32]) -> &[i32] {
-        execute(program, 0);
+        execute(program, &[]);
         program
     }
 
@@ -101,57 +103,64 @@ mod spec {
     #[test]
     fn input() {
         let mut program = [3, 1, 99];
-        execute(&mut program, 2);
+        execute(&mut program, &[2]);
         assert_eq!(program, [3, 2, 99]);
 
         let mut program = [3, 0, 99];
-        execute(&mut program, -10);
+        execute(&mut program, &[-10]);
         assert_eq!(program, [-10, 0, 99]);
     }
 
     #[test]
+    fn multiple_inputs() {
+        let mut program = [3, 1, 3, 3, 3, 5, 99];
+        execute(&mut program, &[11, 22, 33]);
+        assert_eq!(program, [3, 11, 3, 22, 3, 33, 99]);
+    }
+
+    #[test]
     fn output() {
-        assert_eq!(execute(&mut [4, 2, 104, -29, 99], 0), [104, -29]);
+        assert_eq!(execute(&mut [4, 2, 104, -29, 99], &[]), [104, -29]);
     }
 
     #[test]
     fn jump_if_true() {
-        assert_eq!(execute(&mut [5, 7, 8, 99, 104, 1, 99, 0, 4], 0), []);
-        assert_eq!(execute(&mut [5, 7, 8, 99, 104, 1, 99, 1, 4], 0), [1]);
-        assert_eq!(execute(&mut [1005, 7, 4, 99, 104, 2, 99, 0], 0), []);
-        assert_eq!(execute(&mut [1005, 7, 4, 99, 104, 2, 99, 1], 0), [2]);
-        assert_eq!(execute(&mut [1105, 0, 4, 99, 104, 3, 99], 0), []);
-        assert_eq!(execute(&mut [1105, 1, 4, 99, 104, 3, 99], 0), [3]);
+        assert_eq!(execute(&mut [5, 7, 8, 99, 104, 1, 99, 0, 4], &[]), []);
+        assert_eq!(execute(&mut [5, 7, 8, 99, 104, 1, 99, 1, 4], &[]), [1]);
+        assert_eq!(execute(&mut [1005, 7, 4, 99, 104, 2, 99, 0], &[]), []);
+        assert_eq!(execute(&mut [1005, 7, 4, 99, 104, 2, 99, 1], &[]), [2]);
+        assert_eq!(execute(&mut [1105, 0, 4, 99, 104, 3, 99], &[]), []);
+        assert_eq!(execute(&mut [1105, 1, 4, 99, 104, 3, 99], &[]), [3]);
     }
 
     #[test]
     fn jump_if_false() {
-        assert_eq!(execute(&mut [6, 7, 8, 99, 104, 1, 99, 0, 4], 0), [1]);
-        assert_eq!(execute(&mut [6, 7, 8, 99, 104, 1, 99, 1, 4], 0), []);
-        assert_eq!(execute(&mut [1006, 7, 4, 99, 104, 2, 99, 0], 0), [2]);
-        assert_eq!(execute(&mut [1006, 7, 4, 99, 104, 2, 99, 1], 0), []);
-        assert_eq!(execute(&mut [1106, 0, 4, 99, 104, 3, 99], 0), [3]);
-        assert_eq!(execute(&mut [1106, 1, 4, 99, 104, 3, 99], 0), []);
+        assert_eq!(execute(&mut [6, 7, 8, 99, 104, 1, 99, 0, 4], &[]), [1]);
+        assert_eq!(execute(&mut [6, 7, 8, 99, 104, 1, 99, 1, 4], &[]), []);
+        assert_eq!(execute(&mut [1006, 7, 4, 99, 104, 2, 99, 0], &[]), [2]);
+        assert_eq!(execute(&mut [1006, 7, 4, 99, 104, 2, 99, 1], &[]), []);
+        assert_eq!(execute(&mut [1106, 0, 4, 99, 104, 3, 99], &[]), [3]);
+        assert_eq!(execute(&mut [1106, 1, 4, 99, 104, 3, 99], &[]), []);
     }
 
     #[test]
     fn less_than() {
-        assert_eq!(execute(&mut [1107, 1, 2, 5, 104, -9, 99], 0), [1]);
-        assert_eq!(execute(&mut [1107, 2, 1, 5, 104, -9, 99], 0), [0]);
-        assert_eq!(execute(&mut [1007, 1, 7, 5, 104, -9, 99, 2], 0), [1]);
-        assert_eq!(execute(&mut [1007, 2, 7, 5, 104, -9, 99, 1], 0), [0]);
-        assert_eq!(execute(&mut [7, 7, 8, 5, 104, -9, 99, 1, 2], 0), [1]);
-        assert_eq!(execute(&mut [7, 7, 8, 5, 104, -9, 99, 2, 1], 0), [0]);
+        assert_eq!(execute(&mut [1107, 1, 2, 5, 104, -9, 99], &[]), [1]);
+        assert_eq!(execute(&mut [1107, 2, 1, 5, 104, -9, 99], &[]), [0]);
+        assert_eq!(execute(&mut [1007, 1, 7, 5, 104, -9, 99, 2], &[]), [1]);
+        assert_eq!(execute(&mut [1007, 2, 7, 5, 104, -9, 99, 1], &[]), [0]);
+        assert_eq!(execute(&mut [7, 7, 8, 5, 104, -9, 99, 1, 2], &[]), [1]);
+        assert_eq!(execute(&mut [7, 7, 8, 5, 104, -9, 99, 2, 1], &[]), [0]);
     }
 
     #[test]
     fn equals() {
-        assert_eq!(execute(&mut [1108, 3, 3, 5, 104, -9, 99], 0), [1]);
-        assert_eq!(execute(&mut [1108, 1, 3, 5, 104, -9, 99], 0), [0]);
-        assert_eq!(execute(&mut [1008, 7, 3, 5, 104, -9, 99, 3], 0), [1]);
-        assert_eq!(execute(&mut [1008, 7, 1, 5, 104, -9, 99, 3], 0), [0]);
-        assert_eq!(execute(&mut [8, 7, 8, 5, 104, -9, 99, 3, 3], 0), [1]);
-        assert_eq!(execute(&mut [8, 7, 8, 5, 104, -9, 99, 1, 3], 0), [0]);
+        assert_eq!(execute(&mut [1108, 3, 3, 5, 104, -9, 99], &[]), [1]);
+        assert_eq!(execute(&mut [1108, 1, 3, 5, 104, -9, 99], &[]), [0]);
+        assert_eq!(execute(&mut [1008, 7, 3, 5, 104, -9, 99, 3], &[]), [1]);
+        assert_eq!(execute(&mut [1008, 7, 1, 5, 104, -9, 99, 3], &[]), [0]);
+        assert_eq!(execute(&mut [8, 7, 8, 5, 104, -9, 99, 3, 3], &[]), [1]);
+        assert_eq!(execute(&mut [8, 7, 8, 5, 104, -9, 99, 1, 3], &[]), [0]);
     }
 
     #[test]
@@ -173,46 +182,46 @@ mod spec {
     #[test]
     fn example_equals_position_mode() {
         let program = || [3, 9, 8, 9, 10, 9, 4, 9, 99, -1, 8];
-        assert_eq!(execute(&mut program(), 8,), [1]);
-        assert_eq!(execute(&mut program(), 9,), [0]);
+        assert_eq!(execute(&mut program(), &[8],), [1]);
+        assert_eq!(execute(&mut program(), &[9],), [0]);
     }
 
     #[test]
     fn example_equals_immediate_mode() {
-        assert_eq!(execute(&mut [3, 3, 1108, -1, 8, 3, 4, 3, 99], 8), [1]);
-        assert_eq!(execute(&mut [3, 3, 1108, -1, 8, 3, 4, 3, 99], 9), [0]);
+        assert_eq!(execute(&mut [3, 3, 1108, -1, 8, 3, 4, 3, 99], &[8]), [1]);
+        assert_eq!(execute(&mut [3, 3, 1108, -1, 8, 3, 4, 3, 99], &[9]), [0]);
     }
 
     #[test]
     fn example_less_than_position_mode() {
         let program = || [3, 9, 7, 9, 10, 9, 4, 9, 99, -1, 8];
-        assert_eq!(execute(&mut program(), 7,), [1]);
-        assert_eq!(execute(&mut program(), 8,), [0]);
+        assert_eq!(execute(&mut program(), &[7],), [1]);
+        assert_eq!(execute(&mut program(), &[8],), [0]);
     }
 
     #[test]
     fn example_less_than_immediate_mode() {
-        assert_eq!(execute(&mut [3, 3, 1107, -1, 8, 3, 4, 3, 99], 7), [1]);
-        assert_eq!(execute(&mut [3, 3, 1107, -1, 8, 3, 4, 3, 99], 8), [0]);
+        assert_eq!(execute(&mut [3, 3, 1107, -1, 8, 3, 4, 3, 99], &[7]), [1]);
+        assert_eq!(execute(&mut [3, 3, 1107, -1, 8, 3, 4, 3, 99], &[8]), [0]);
     }
 
     #[test]
     fn example_jumps_position_mode() {
         let program = || [3, 12, 6, 12, 15, 1, 13, 14, 13, 4, 13, 99, -1, 0, 1, 9];
-        assert_eq!(execute(&mut program(), 0,), [0]);
-        assert_eq!(execute(&mut program(), 2,), [1]);
+        assert_eq!(execute(&mut program(), &[0],), [0]);
+        assert_eq!(execute(&mut program(), &[2],), [1]);
     }
 
     #[test]
     fn example_jumps_immediate_mode() {
         let program = || [3, 3, 1105, -1, 9, 1101, 0, 0, 12, 4, 12, 99, 1];
-        assert_eq!(execute(&mut program(), 0,), [0]);
-        assert_eq!(execute(&mut program(), 2,), [1]);
+        assert_eq!(execute(&mut program(), &[0],), [0]);
+        assert_eq!(execute(&mut program(), &[2],), [1]);
     }
 
     #[test]
     fn passes_diagnostic_tests() {
-        let output = execute(&mut parse(crate::day05::INPUT), 1);
+        let output = execute(&mut parse(crate::day05::INPUT), &[1]);
         assert_eq!(output[0..output.len() - 1], [0, 0, 0, 0, 0, 0, 0, 0, 0]);
     }
 
@@ -226,8 +235,8 @@ mod spec {
             ]
         };
 
-        assert_eq!(execute(&mut program(), 7,), [999]);
-        assert_eq!(execute(&mut program(), 8,), [1000]);
-        assert_eq!(execute(&mut program(), 9,), [1001]);
+        assert_eq!(execute(&mut program(), &[7],), [999]);
+        assert_eq!(execute(&mut program(), &[8],), [1000]);
+        assert_eq!(execute(&mut program(), &[9],), [1001]);
     }
 }
