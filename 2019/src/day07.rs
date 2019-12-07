@@ -1,19 +1,15 @@
-use crate::intcode;
+use crate::intcode::Program;
 use itertools::Itertools;
-use std::sync::mpsc::channel;
-use std::sync::mpsc::Receiver;
-use std::sync::mpsc::Sender;
-use std::thread;
 
 pub const INPUT: &str = include_str!("../res/day07.txt");
 
 pub fn part1(input: &str) -> i32 {
-    let program = intcode::parse(input);
+    let program = Program::parse(input);
     (0..5)
         .permutations(5)
         .map(|settings| {
             settings.into_iter().fold(vec![0], |output, setting| {
-                intcode::execute(&mut program.clone(), &[setting, output[0]])
+                program.clone().execute(vec![setting, output[0]]).output
             })[0]
         })
         .max()
@@ -21,49 +17,35 @@ pub fn part1(input: &str) -> i32 {
 }
 
 pub fn part2(input: &str) -> i32 {
-    let code = intcode::parse(input);
+    let program = Program::parse(input);
     (5..10)
         .permutations(5)
         .map(|settings| {
-            let (into_b, from_a) = channel();
-            let (into_c, from_b) = channel();
-            let (into_d, from_c) = channel();
-            let (into_e, from_d) = channel();
-            let (into_a, from_e) = channel();
-            let (into_result, from_result) = channel();
+            let mut prog_a = program.clone();
+            let mut prog_b = program.clone();
+            let mut prog_c = program.clone();
+            let mut prog_d = program.clone();
+            let mut prog_e = program.clone();
 
-            into_a.send(settings[0]).unwrap();
-            into_b.send(settings[1]).unwrap();
-            into_c.send(settings[2]).unwrap();
-            into_d.send(settings[3]).unwrap();
-            into_e.send(settings[4]).unwrap();
+            let mut a_in = vec![settings[0], 0];
+            let mut b_in = vec![settings[1]];
+            let mut c_in = vec![settings[2]];
+            let mut d_in = vec![settings[3]];
+            let mut e_in = vec![settings[4]];
+            loop {
+                b_in.append(&mut prog_a.iteration(&mut a_in).flush_output());
+                c_in.append(&mut prog_b.iteration(&mut b_in).flush_output());
+                d_in.append(&mut prog_c.iteration(&mut c_in).flush_output());
+                e_in.append(&mut prog_d.iteration(&mut d_in).flush_output());
+                a_in.append(&mut prog_e.iteration(&mut e_in).flush_output());
 
-            into_a.send(0).unwrap();
-
-            launch(code.clone(), from_e, vec![into_b]);
-            launch(code.clone(), from_a, vec![into_c]);
-            launch(code.clone(), from_b, vec![into_d]);
-            launch(code.clone(), from_c, vec![into_e]);
-            launch(code.clone(), from_d, vec![into_a, into_result]);
-
-            from_result.into_iter().last().unwrap()
+                if prog_e.has_terminated() {
+                    return a_in.last().cloned().unwrap();
+                }
+            }
         })
         .max()
         .unwrap()
-}
-
-fn launch(mut code: Vec<i32>, input: Receiver<i32>, outputs: Vec<Sender<i32>>) {
-    thread::spawn(move || {
-        intcode::iterate(
-            &mut code,
-            || input.recv().unwrap(),
-            |v| {
-                for output in &outputs {
-                    let _ignore = output.send(v);
-                }
-            },
-        );
-    });
 }
 
 #[cfg(test)]
