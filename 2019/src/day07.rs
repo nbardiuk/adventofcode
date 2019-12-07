@@ -1,6 +1,8 @@
 use crate::intcode;
 use itertools::Itertools;
 use std::sync::mpsc::channel;
+use std::sync::mpsc::Receiver;
+use std::sync::mpsc::Sender;
 use std::thread;
 
 pub const INPUT: &str = include_str!("../res/day07.txt");
@@ -23,72 +25,45 @@ pub fn part2(input: &str) -> i32 {
     (5..10)
         .permutations(5)
         .map(|settings| {
-            let (a_sender, b_reciever) = channel();
-            let (b_sender, c_reciever) = channel();
-            let (c_sender, d_reciever) = channel();
-            let (d_sender, e_reciever) = channel();
-            let (e_sender, a_reciever) = channel();
-            let (result_sender, result_reciever) = channel();
+            let (into_b, from_a) = channel();
+            let (into_c, from_b) = channel();
+            let (into_d, from_c) = channel();
+            let (into_e, from_d) = channel();
+            let (into_a, from_e) = channel();
+            let (into_result, from_result) = channel();
 
-            e_sender.send(settings[0]).unwrap();
-            e_sender.send(0).unwrap();
-            a_sender.send(settings[1]).unwrap();
-            b_sender.send(settings[2]).unwrap();
-            c_sender.send(settings[3]).unwrap();
-            d_sender.send(settings[4]).unwrap();
+            into_a.send(settings[0]).unwrap();
+            into_b.send(settings[1]).unwrap();
+            into_c.send(settings[2]).unwrap();
+            into_d.send(settings[3]).unwrap();
+            into_e.send(settings[4]).unwrap();
 
-            let mut acode = code.clone();
-            thread::spawn(move || {
-                intcode::iterate(
-                    &mut acode,
-                    || a_reciever.recv().unwrap(),
-                    |v| a_sender.send(v).expect("a could not send"),
-                );
-            });
+            into_a.send(0).unwrap();
 
-            let mut bcode = code.clone();
-            thread::spawn(move || {
-                intcode::iterate(
-                    &mut bcode,
-                    || b_reciever.recv().unwrap(),
-                    |v| b_sender.send(v).expect("b could not send"),
-                );
-            });
+            launch(code.clone(), from_e, vec![into_b]);
+            launch(code.clone(), from_a, vec![into_c]);
+            launch(code.clone(), from_b, vec![into_d]);
+            launch(code.clone(), from_c, vec![into_e]);
+            launch(code.clone(), from_d, vec![into_a, into_result]);
 
-            let mut ccode = code.clone();
-            thread::spawn(move || {
-                intcode::iterate(
-                    &mut ccode,
-                    || c_reciever.recv().unwrap(),
-                    |v| c_sender.send(v).expect("c could not send"),
-                );
-            });
-
-            let mut dcode = code.clone();
-            thread::spawn(move || {
-                intcode::iterate(
-                    &mut dcode,
-                    || d_reciever.recv().unwrap(),
-                    |v| d_sender.send(v).expect("d could not send"),
-                );
-            });
-
-            let mut ecode = code.clone();
-            thread::spawn(move || {
-                intcode::iterate(
-                    &mut ecode,
-                    || e_reciever.recv().unwrap(),
-                    |v| {
-                        if e_sender.send(v).is_err() {}
-                        result_sender.send(v).expect("result could not send")
-                    },
-                );
-            });
-
-            result_reciever.into_iter().last().unwrap()
+            from_result.into_iter().last().unwrap()
         })
         .max()
         .unwrap()
+}
+
+fn launch(mut code: Vec<i32>, input: Receiver<i32>, outputs: Vec<Sender<i32>>) {
+    thread::spawn(move || {
+        intcode::iterate(
+            &mut code,
+            || input.recv().unwrap(),
+            |v| {
+                for output in &outputs {
+                    let _ignore = output.send(v);
+                }
+            },
+        );
+    });
 }
 
 #[cfg(test)]
