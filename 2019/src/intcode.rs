@@ -1,7 +1,16 @@
 pub fn execute(program: &mut [i32], input: &[i32]) -> Vec<i32> {
+    let mut input = Vec::from(input);
     let mut output = vec![];
+    iterate(program, || input.remove(0), |v| output.push(v));
+    output
+}
+
+pub fn iterate<IN, OUT>(program: &mut [i32], mut pull: IN, mut push: OUT)
+where
+    IN: FnMut() -> i32,
+    OUT: FnMut(i32) -> (),
+{
     let mut pointer = 0;
-    let mut input_index = 0;
     loop {
         let operation = program[pointer];
 
@@ -30,12 +39,11 @@ pub fn execute(program: &mut [i32], input: &[i32]) -> Vec<i32> {
             }
             3 => {
                 let out = arg_out(1);
-                program[out] = input[input_index];
-                input_index += 1;
+                program[out] = pull();
                 pointer += 2;
             }
             4 => {
-                output.push(arg_in(1));
+                push(arg_in(1));
                 pointer += 2;
             }
             5 => {
@@ -62,7 +70,7 @@ pub fn execute(program: &mut [i32], input: &[i32]) -> Vec<i32> {
                 program[out] = if arg_in(1) == arg_in(2) { 1 } else { 0 };
                 pointer += 4;
             }
-            _ => return output,
+            _ => return,
         };
     }
 }
