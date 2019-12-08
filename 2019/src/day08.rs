@@ -14,6 +14,20 @@ pub fn part1(input: &str) -> usize {
 
     min.map(|l| count(l, &1) * count(l, &2)).unwrap()
 }
+pub fn part2(input: &str) -> Vec<u8> {
+    let digits = read_digits(input);
+    let layers = split_layers(&digits, 25, 6);
+    merge(&layers, 25, 6)
+}
+
+fn merge(layers: &[&[u8]], width: usize, height: usize) -> Vec<u8> {
+    layers
+        .iter()
+        .fold(vec![2; width * height], |result, layer| {
+            let pairs = result.iter().zip(layer.iter());
+            pairs.map(|(&r, &l)| if r == 2 { l } else { r }).collect()
+        })
+}
 
 fn split_layers(digits: &[u8], width: usize, height: usize) -> Vec<&[u8]> {
     digits.chunks(width * height).collect()
@@ -46,7 +60,39 @@ mod spec {
     }
 
     #[test]
-    fn example() {
+    fn part1_my_input() {
         assert_eq!(part1(INPUT), 2210);
+    }
+
+    #[test]
+    fn merging_layers() {
+        assert_eq!(
+            merge(
+                &[
+                    &[0, 2, 2, 2], //
+                    &[1, 1, 2, 2], //
+                    &[2, 2, 1, 2], //
+                    &[0, 0, 0, 0]
+                ],
+                2,
+                2
+            ),
+            [0, 1, 1, 0]
+        );
+    }
+    #[test]
+    fn part2_my_input() {
+        assert_eq!(
+            part2(INPUT),
+            vec![
+                // CGEGE
+                0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, //
+                1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, //
+                1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, //
+                1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, //
+                1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, //
+                0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0
+            ]
+        );
     }
 }
