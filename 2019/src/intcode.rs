@@ -16,18 +16,24 @@ impl Program {
         }
     }
 
+    pub fn call(mut self, mut input: Vec<i64>) -> i64 {
+        self.iteration(&mut input);
+        self.output.last().cloned().unwrap()
+    }
+
     pub fn execute(mut self, mut input: Vec<i64>) -> Self {
         self.iteration(&mut input);
         self
     }
 
-    fn modes(&self) -> [u8; 3] {
+    fn mode(&self, i: usize) -> u8 {
         let modes = self.memory[self.pointer] / 100;
-        [
-            (modes % 10) as u8,
-            ((modes % 100) / 10) as u8,
-            (modes / 100) as u8,
-        ]
+        match i {
+            0 => (modes % 10) as u8,
+            1 => (modes % 100 / 10) as u8,
+            2 => (modes / 100) as u8,
+            _ => panic!(format!("unexpected mode index {}", i)),
+        }
     }
 
     fn read_memory(&self, ptr: usize) -> i64 {
@@ -36,19 +42,20 @@ impl Program {
 
     fn arg(&self, index: usize) -> i64 {
         let ptr = self.memory[self.pointer + index];
-        match self.modes()[index - 1] {
+        match self.mode(index - 1) {
             0 => self.read_memory(ptr as usize),
             1 => ptr,
-            _ => self.read_memory((self.relative_base + ptr) as usize),
+            2 => self.read_memory((self.relative_base + ptr) as usize),
+            mode => panic!(format!("unexpected reading mode {}", mode)),
         }
     }
 
     fn write(&mut self, index: usize, value: i64) {
         let ptr = self.memory[self.pointer + index];
-        let i = match self.modes()[index - 1] {
+        let i = match self.mode(index - 1) {
             0 => ptr as usize,
-            1 => ptr as usize,
-            _ => (self.relative_base + ptr) as usize,
+            2 => (self.relative_base + ptr) as usize,
+            mode => panic!(format!("unexpected writing mode {}", mode)),
         };
         if i >= self.memory.len() {
             self.memory.resize(i + 1, 0);

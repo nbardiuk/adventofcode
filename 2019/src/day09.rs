@@ -3,21 +3,11 @@ use crate::intcode::Program;
 pub const INPUT: &str = include_str!("../res/day09.txt");
 
 pub fn part1(input: &str) -> i64 {
-    Program::parse(input)
-        .execute(vec![1])
-        .output
-        .last()
-        .cloned()
-        .unwrap()
+    Program::parse(input).call(vec![1])
 }
 
 pub fn part2(input: &str) -> i64 {
-    Program::parse(input)
-        .execute(vec![2])
-        .output
-        .last()
-        .cloned()
-        .unwrap()
+    Program::parse(input).call(vec![2])
 }
 
 #[cfg(test)]

@@ -8,9 +8,9 @@ pub fn part1(input: &str) -> i64 {
     (0..5)
         .permutations(5)
         .map(|settings| {
-            settings.into_iter().fold(vec![0], |output, setting| {
-                program.clone().execute(vec![setting, output[0]]).output
-            })[0]
+            settings.into_iter().fold(0, |output, setting| {
+                program.clone().call(vec![setting, output])
+            })
         })
         .max()
         .unwrap()
