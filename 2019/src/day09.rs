@@ -11,6 +11,15 @@ pub fn part1(input: &str) -> i64 {
         .unwrap()
 }
 
+pub fn part2(input: &str) -> i64 {
+    Program::parse(input)
+        .execute(vec![2])
+        .output
+        .last()
+        .cloned()
+        .unwrap()
+}
+
 #[cfg(test)]
 mod spec {
     use super::*;
@@ -18,5 +27,10 @@ mod spec {
     #[test]
     fn part1_my_input() {
         assert_eq!(part1(INPUT), 4234906522);
+    }
+
+    #[test]
+    fn part2_my_input() {
+        assert_eq!(part2(INPUT), 60962);
     }
 }
