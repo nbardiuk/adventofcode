@@ -27,20 +27,20 @@ pub fn part2(input: &str) -> i64 {
             let mut prog_d = program.clone();
             let mut prog_e = program.clone();
 
-            let mut a_in = vec![settings[0], 0];
-            let mut b_in = vec![settings[1]];
-            let mut c_in = vec![settings[2]];
-            let mut d_in = vec![settings[3]];
-            let mut e_in = vec![settings[4]];
+            let mut e2a = vec![settings[0], 0];
+            let mut a2b = vec![settings[1]];
+            let mut b2c = vec![settings[2]];
+            let mut c2d = vec![settings[3]];
+            let mut d2e = vec![settings[4]];
             loop {
-                b_in.append(&mut prog_a.iteration(&mut a_in).flush_output());
-                c_in.append(&mut prog_b.iteration(&mut b_in).flush_output());
-                d_in.append(&mut prog_c.iteration(&mut c_in).flush_output());
-                e_in.append(&mut prog_d.iteration(&mut d_in).flush_output());
-                a_in.append(&mut prog_e.iteration(&mut e_in).flush_output());
+                a2b.append(&mut prog_a.iteration(&mut e2a).flush_output());
+                b2c.append(&mut prog_b.iteration(&mut a2b).flush_output());
+                c2d.append(&mut prog_c.iteration(&mut b2c).flush_output());
+                d2e.append(&mut prog_d.iteration(&mut c2d).flush_output());
+                e2a.append(&mut prog_e.iteration(&mut d2e).flush_output());
 
                 if prog_e.has_terminated() {
-                    return a_in.last().cloned().unwrap();
+                    return e2a.last().cloned().unwrap();
                 }
             }
         })
