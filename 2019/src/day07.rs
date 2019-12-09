@@ -3,7 +3,7 @@ use itertools::Itertools;
 
 pub const INPUT: &str = include_str!("../res/day07.txt");
 
-pub fn part1(input: &str) -> i32 {
+pub fn part1(input: &str) -> i64 {
     let program = Program::parse(input);
     (0..5)
         .permutations(5)
@@ -16,7 +16,7 @@ pub fn part1(input: &str) -> i32 {
         .unwrap()
 }
 
-pub fn part2(input: &str) -> i32 {
+pub fn part2(input: &str) -> i64 {
     let program = Program::parse(input);
     (5..10)
         .permutations(5)

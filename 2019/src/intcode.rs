@@ -1,40 +1,62 @@
 #[derive(Clone)]
 pub struct Program {
-    pub memory: Vec<i32>,
+    pub memory: Vec<i64>,
     pub pointer: usize,
-    pub output: Vec<i32>,
+    pub relative_base: i64,
+    pub output: Vec<i64>,
 }
 
 impl Program {
-    pub fn new(code: &[i32]) -> Self {
+    pub fn new(code: &[i64]) -> Self {
         Program {
             memory: Vec::from(code),
             pointer: 0,
+            relative_base: 0,
             output: vec![],
         }
     }
 
-    pub fn execute(mut self, mut input: Vec<i32>) -> Self {
+    pub fn execute(mut self, mut input: Vec<i64>) -> Self {
         self.iteration(&mut input);
         self
     }
 
-    fn arg(&self, index: usize) -> i32 {
+    fn modes(&self) -> [u8; 3] {
         let modes = self.memory[self.pointer] / 100;
+        [
+            (modes % 10) as u8,
+            ((modes % 100) / 10) as u8,
+            (modes / 100) as u8,
+        ]
+    }
+
+    fn read_memory(&self, ptr: usize) -> i64 {
+        *self.memory.get(ptr).unwrap_or(&0)
+    }
+
+    fn arg(&self, index: usize) -> i64 {
         let ptr = self.memory[self.pointer + index];
-        if [modes % 10, modes / 10][index - 1] == 0 {
-            self.memory[ptr as usize]
-        } else {
-            ptr
+        match self.modes()[index - 1] {
+            0 => self.read_memory(ptr as usize),
+            1 => ptr,
+            _ => self.read_memory((self.relative_base + ptr) as usize),
         }
     }
 
-    fn write(&mut self, index: usize, value: i32) {
-        let i = self.memory[self.pointer + index] as usize;
+    fn write(&mut self, index: usize, value: i64) {
+        let ptr = self.memory[self.pointer + index];
+        let i = match self.modes()[index - 1] {
+            0 => ptr as usize,
+            1 => ptr as usize,
+            _ => (self.relative_base + ptr) as usize,
+        };
+        if i >= self.memory.len() {
+            self.memory.resize(i + 1, 0);
+        }
         self.memory[i] = value;
     }
 
-    pub fn iteration<'a>(&'a mut self, input: &mut Vec<i32>) -> &'a mut Self {
+    pub fn iteration<'a>(&'a mut self, input: &mut Vec<i64>) -> &'a mut Self {
         loop {
             match self.memory[self.pointer] % 100 {
                 1 => {
@@ -78,6 +100,10 @@ impl Program {
                     self.write(3, if self.arg(1) == self.arg(2) { 1 } else { 0 });
                     self.pointer += 4;
                 }
+                9 => {
+                    self.relative_base += self.arg(1);
+                    self.pointer += 2;
+                }
                 code => {
                     assert_eq!(code, 99);
                     return self;
@@ -86,7 +112,7 @@ impl Program {
         }
     }
 
-    pub fn flush_output(&mut self) -> Vec<i32> {
+    pub fn flush_output(&mut self) -> Vec<i64> {
         std::mem::replace(&mut self.output, vec![])
     }
 
@@ -108,11 +134,11 @@ impl Program {
 mod spec {
     use super::*;
 
-    fn memory(code: &[i32]) -> Vec<i32> {
+    fn memory(code: &[i64]) -> Vec<i64> {
         Program::new(code).execute(vec![]).memory
     }
 
-    fn execute(code: &[i32], input: &[i32]) -> Program {
+    fn execute(code: &[i64], input: &[i64]) -> Program {
         Program::new(code).execute(Vec::from(input))
     }
 
@@ -249,9 +275,15 @@ mod spec {
     }
 
     #[test]
-    fn passes_diagnostic_tests() {
+    fn passes_diagnostic_tests_day05() {
         let output = Program::parse(crate::day05::INPUT).execute(vec![1]).output;
         assert_eq!(output[0..output.len() - 1], [0, 0, 0, 0, 0, 0, 0, 0, 0]);
+    }
+
+    #[test]
+    fn passes_diagnostic_tests_day09() {
+        let output = Program::parse(crate::day09::INPUT).execute(vec![1]).output;
+        assert_eq!(output[0..output.len() - 1], []);
     }
 
     #[test]
@@ -265,5 +297,25 @@ mod spec {
         assert_eq!(execute(code, &[7],).output, [999]);
         assert_eq!(execute(code, &[8],).output, [1000]);
         assert_eq!(execute(code, &[9],).output, [1001]);
+    }
+
+    #[test]
+    fn quine() {
+        let code = &[
+            109, 1, 204, -1, 1001, 100, 1, 100, 1008, 100, 16, 101, 1006, 101, 0, 99,
+        ];
+        assert_eq!(execute(code, &[],).output, code);
+    }
+
+    #[test]
+    fn large_number() {
+        let code = &[1102, 34915192, 34915192, 7, 4, 7, 99, 0];
+        assert_eq!(execute(code, &[],).output, [1219070632396864]);
+    }
+
+    #[test]
+    fn large_output() {
+        let code = &[104, 1125899906842624, 99];
+        assert_eq!(execute(code, &[],).output, [1125899906842624]);
     }
 }

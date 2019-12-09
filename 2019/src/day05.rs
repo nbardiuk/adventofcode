@@ -2,7 +2,7 @@ use crate::intcode::Program;
 
 pub const INPUT: &str = include_str!("../res/day05.txt");
 
-pub fn part1(input: &str) -> i32 {
+pub fn part1(input: &str) -> i64 {
     Program::parse(input)
         .execute(vec![1])
         .output
@@ -11,7 +11,7 @@ pub fn part1(input: &str) -> i32 {
         .unwrap()
 }
 
-pub fn part2(input: &str) -> i32 {
+pub fn part2(input: &str) -> i64 {
     Program::parse(input)
         .execute(vec![5])
         .output
