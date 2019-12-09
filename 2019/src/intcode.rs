@@ -2,16 +2,16 @@
 pub struct Program {
     pub memory: Vec<i64>,
     pub pointer: usize,
-    pub relative_base: i64,
+    pub base: usize,
     pub output: Vec<i64>,
 }
 
 impl Program {
-    pub fn new(code: &[i64]) -> Self {
+    pub fn new(code: Vec<i64>) -> Self {
         Program {
-            memory: Vec::from(code),
+            memory: code,
             pointer: 0,
-            relative_base: 0,
+            base: 0,
             output: vec![],
         }
     }
@@ -26,52 +26,48 @@ impl Program {
         self
     }
 
-    fn mode(&self, i: usize) -> u8 {
+    fn mode_at(&self, index: usize) -> Option<u8> {
         let modes = self.memory[self.pointer] / 100;
-        match i {
-            0 => (modes % 10) as u8,
-            1 => (modes % 100 / 10) as u8,
-            2 => (modes / 100) as u8,
-            _ => panic!(format!("unexpected mode index {}", i)),
+        match index {
+            1 => Some((modes % 10) as u8),
+            2 => Some((modes % 100 / 10) as u8),
+            3 => Some((modes / 100) as u8),
+            _ => None,
         }
     }
 
-    fn read_memory(&self, ptr: usize) -> i64 {
-        *self.memory.get(ptr).unwrap_or(&0)
+    fn pointer_at(&self, index: usize) -> Option<usize> {
+        let pointer = self.memory[self.pointer + index];
+        self.mode_at(index).and_then(|mode| match mode {
+            0 => Some(pointer as usize),
+            2 => Some((self.base as i64 + pointer) as usize),
+            _ => None,
+        })
     }
 
-    fn arg(&self, index: usize) -> i64 {
-        let ptr = self.memory[self.pointer + index];
-        match self.mode(index - 1) {
-            0 => self.read_memory(ptr as usize),
-            1 => ptr,
-            2 => self.read_memory((self.relative_base + ptr) as usize),
-            mode => panic!(format!("unexpected reading mode {}", mode)),
-        }
+    fn read(&self, index: usize) -> i64 {
+        let pointer = self.pointer_at(index).unwrap_or(self.pointer + index);
+        self.memory.get(pointer).cloned().unwrap_or_default()
     }
 
     fn write(&mut self, index: usize, value: i64) {
-        let ptr = self.memory[self.pointer + index];
-        let i = match self.mode(index - 1) {
-            0 => ptr as usize,
-            2 => (self.relative_base + ptr) as usize,
-            mode => panic!(format!("unexpected writing mode {}", mode)),
+        if let Some(pointer) = self.pointer_at(index) {
+            if self.memory.len() <= pointer {
+                self.memory.resize_with(pointer + 100, Default::default);
+            }
+            self.memory[pointer] = value;
         };
-        if i >= self.memory.len() {
-            self.memory.resize(i + 1, 0);
-        }
-        self.memory[i] = value;
     }
 
     pub fn iteration<'a>(&'a mut self, input: &mut Vec<i64>) -> &'a mut Self {
         loop {
             match self.memory[self.pointer] % 100 {
                 1 => {
-                    self.write(3, self.arg(1) + self.arg(2));
+                    self.write(3, self.read(1) + self.read(2));
                     self.pointer += 4;
                 }
                 2 => {
-                    self.write(3, self.arg(1) * self.arg(2));
+                    self.write(3, self.read(1) * self.read(2));
                     self.pointer += 4;
                 }
                 3 => {
@@ -82,33 +78,33 @@ impl Program {
                     self.pointer += 2;
                 }
                 4 => {
-                    self.output.push(self.arg(1));
+                    self.output.push(self.read(1));
                     self.pointer += 2;
                 }
                 5 => {
-                    if self.arg(1) != 0 {
-                        self.pointer = self.arg(2) as usize;
+                    if self.read(1) != 0 {
+                        self.pointer = self.read(2) as usize;
                     } else {
                         self.pointer += 3;
                     };
                 }
                 6 => {
-                    if self.arg(1) == 0 {
-                        self.pointer = self.arg(2) as usize;
+                    if self.read(1) == 0 {
+                        self.pointer = self.read(2) as usize;
                     } else {
                         self.pointer += 3;
                     };
                 }
                 7 => {
-                    self.write(3, if self.arg(1) < self.arg(2) { 1 } else { 0 });
+                    self.write(3, if self.read(1) < self.read(2) { 1 } else { 0 });
                     self.pointer += 4;
                 }
                 8 => {
-                    self.write(3, if self.arg(1) == self.arg(2) { 1 } else { 0 });
+                    self.write(3, if self.read(1) == self.read(2) { 1 } else { 0 });
                     self.pointer += 4;
                 }
                 9 => {
-                    self.relative_base += self.arg(1);
+                    self.base = (self.base as i64 + self.read(1)) as usize;
                     self.pointer += 2;
                 }
                 code => {
@@ -133,7 +129,7 @@ impl Program {
             .split(',')
             .filter_map(|n| n.parse().ok())
             .collect::<Vec<_>>();
-        Program::new(&code)
+        Program::new(code)
     }
 }
 
@@ -142,11 +138,11 @@ mod spec {
     use super::*;
 
     fn memory(code: &[i64]) -> Vec<i64> {
-        Program::new(code).execute(vec![]).memory
+        Program::new(Vec::from(code)).execute(vec![]).memory
     }
 
     fn execute(code: &[i64], input: &[i64]) -> Program {
-        Program::new(code).execute(Vec::from(input))
+        Program::new(Vec::from(code)).execute(Vec::from(input))
     }
 
     #[test]
