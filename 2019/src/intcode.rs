@@ -1,19 +1,17 @@
-#[derive(Clone)]
-pub struct Program {
+#[derive(Default, Clone)]
+pub struct Computer {
     pub memory: Vec<i64>,
-    pub pointer: usize,
-    pub base: usize,
-    pub output: Vec<i64>,
+    instruction_pointer: usize,
+    relative_base: i64,
+    output: Vec<i64>,
+    pub has_terminated: bool,
 }
 
-impl Program {
-    pub fn new(code: Vec<i64>) -> Self {
-        Program {
-            memory: code,
-            pointer: 0,
-            base: 0,
-            output: vec![],
-        }
+impl Computer {
+    pub fn new(program: Vec<i64>) -> Self {
+        let mut instance: Self = Default::default();
+        instance.memory = program;
+        instance
     }
 
     pub fn call(mut self, mut input: Vec<i64>) -> i64 {
@@ -21,94 +19,68 @@ impl Program {
         self.output.last().cloned().unwrap()
     }
 
-    pub fn execute(mut self, mut input: Vec<i64>) -> Self {
-        self.iteration(&mut input);
-        self
-    }
-
-    fn mode_at(&self, index: usize) -> Option<u8> {
-        let modes = self.memory[self.pointer] / 100;
-        match index {
-            1 => Some((modes % 10) as u8),
-            2 => Some((modes % 100 / 10) as u8),
-            3 => Some((modes / 100) as u8),
-            _ => None,
-        }
-    }
-
-    fn pointer_at(&self, index: usize) -> Option<usize> {
-        let pointer = self.memory[self.pointer + index];
-        self.mode_at(index).and_then(|mode| match mode {
-            0 => Some(pointer as usize),
-            2 => Some((self.base as i64 + pointer) as usize),
-            _ => None,
-        })
-    }
-
-    fn read(&self, index: usize) -> i64 {
-        let pointer = self.pointer_at(index).unwrap_or(self.pointer + index);
-        self.memory.get(pointer).cloned().unwrap_or_default()
-    }
-
-    fn write(&mut self, index: usize, value: i64) {
-        if let Some(pointer) = self.pointer_at(index) {
-            if self.memory.len() <= pointer {
-                self.memory.resize_with(pointer + 100, Default::default);
-            }
-            self.memory[pointer] = value;
-        };
-    }
-
     pub fn iteration<'a>(&'a mut self, input: &mut Vec<i64>) -> &'a mut Self {
         loop {
-            match self.memory[self.pointer] % 100 {
+            let opcode = (self.memory[self.instruction_pointer] % 100) as u8;
+            match opcode {
+                // add
                 1 => {
-                    self.write(3, self.read(1) + self.read(2));
-                    self.pointer += 4;
+                    *self.to(3) = self.at(1) + self.at(2);
+                    self.instruction_pointer += 4;
                 }
+                // multiply
                 2 => {
-                    self.write(3, self.read(1) * self.read(2));
-                    self.pointer += 4;
+                    *self.to(3) = self.at(1) * self.at(2);
+                    self.instruction_pointer += 4;
                 }
+                // input
                 3 => {
                     if input.is_empty() {
                         return self;
                     }
-                    self.write(1, input.remove(0));
-                    self.pointer += 2;
+                    *self.to(1) = input.remove(0);
+                    self.instruction_pointer += 2;
                 }
+                // output
                 4 => {
-                    self.output.push(self.read(1));
-                    self.pointer += 2;
+                    self.output.push(self.at(1));
+                    self.instruction_pointer += 2;
                 }
+                // jump if true
                 5 => {
-                    if self.read(1) != 0 {
-                        self.pointer = self.read(2) as usize;
+                    if self.at(1) != 0 {
+                        self.instruction_pointer = self.at(2) as usize;
                     } else {
-                        self.pointer += 3;
+                        self.instruction_pointer += 3;
                     };
                 }
+                // jump if false
                 6 => {
-                    if self.read(1) == 0 {
-                        self.pointer = self.read(2) as usize;
+                    if self.at(1) == 0 {
+                        self.instruction_pointer = self.at(2) as usize;
                     } else {
-                        self.pointer += 3;
+                        self.instruction_pointer += 3;
                     };
                 }
+                // less than
                 7 => {
-                    self.write(3, if self.read(1) < self.read(2) { 1 } else { 0 });
-                    self.pointer += 4;
+                    *self.to(3) = (self.at(1) < self.at(2)).into();
+                    self.instruction_pointer += 4;
                 }
+                // equals
                 8 => {
-                    self.write(3, if self.read(1) == self.read(2) { 1 } else { 0 });
-                    self.pointer += 4;
+                    *self.to(3) = (self.at(1) == self.at(2)).into();
+                    self.instruction_pointer += 4;
                 }
+                // adjust relative base
                 9 => {
-                    self.base = (self.base as i64 + self.read(1)) as usize;
-                    self.pointer += 2;
+                    self.relative_base += self.at(1);
+                    self.instruction_pointer += 2;
                 }
-                code => {
-                    assert_eq!(code, 99);
+                // halt
+                _ => {
+                    assert_eq!(opcode, 99);
+                    self.has_terminated = true;
                     return self;
                 }
             };
@@ -119,17 +91,51 @@ impl Program {
         std::mem::replace(&mut self.output, vec![])
     }
 
-    pub fn has_terminated(&self) -> bool {
-        self.memory[self.pointer] == 99
+    pub fn parse(text: &str) -> Self {
+        let program = text
+            .trim_end_matches('\n')
+            .split(',')
+            .map(|n| n.parse().unwrap())
+            .collect();
+        Self::new(program)
     }
 
-    pub fn parse(text: &str) -> Self {
-        let code = text
-            .trim_end()
-            .split(',')
-            .filter_map(|n| n.parse().ok())
-            .collect::<Vec<_>>();
-        Program::new(code)
+    fn mode_for(&self, mut parameter: u8) -> u8 {
+        let mut modes = (self.memory[self.instruction_pointer] / 100) as u8;
+        while parameter > 1 {
+            modes /= 10;
+            parameter -= 1;
+        }
+        modes % 10
+    }
+
+    fn address_for(&self, parameter: u8) -> usize {
+        let address = self.instruction_pointer + parameter as usize;
+        match self.mode_for(parameter) {
+            // position
+            0 => self.memory[address] as usize,
+            // immediate
+            1 => address,
+            // relative
+            _ => (self.relative_base + self.memory[address]) as usize,
+        }
+    }
+
+    fn at(&self, parameter: u8) -> i64 {
+        let address = self.address_for(parameter);
+        if self.memory.len() <= address {
+            0
+        } else {
+            self.memory[address]
+        }
+    }
+
+    fn to(&mut self, parameter: u8) -> &mut i64 {
+        let address = self.address_for(parameter);
+        if self.memory.len() <= address {
+            self.memory.resize(address + 100, 0);
+        }
+        &mut self.memory[address]
     }
 }
 
@@ -137,12 +143,17 @@ impl Program {
 mod spec {
     use super::*;
 
-    fn memory(code: &[i64]) -> Vec<i64> {
-        Program::new(Vec::from(code)).execute(vec![]).memory
+    fn memory(program: &[i64]) -> Vec<i64> {
+        Computer::new(Vec::from(program))
+            .iteration(&mut vec![])
+            .memory
+            .clone()
     }
 
-    fn execute(code: &[i64], input: &[i64]) -> Program {
-        Program::new(Vec::from(code)).execute(Vec::from(input))
+    fn execute(program: &[i64], input: &[i64]) -> Computer {
+        Computer::new(Vec::from(program))
+            .iteration(&mut Vec::from(input))
+            .clone()
     }
 
     #[test]
@@ -239,9 +250,9 @@ mod spec {
 
     #[test]
     fn example_equals_position_mode() {
-        let code = &[3, 9, 8, 9, 10, 9, 4, 9, 99, -1, 8];
-        assert_eq!(execute(code, &[8],).output, [1]);
-        assert_eq!(execute(code, &[9],).output, [0]);
+        let program = &[3, 9, 8, 9, 10, 9, 4, 9, 99, -1, 8];
+        assert_eq!(execute(program, &[8],).output, [1]);
+        assert_eq!(execute(program, &[9],).output, [0]);
     }
 
     #[test]
@@ -252,9 +263,9 @@ mod spec {
 
     #[test]
     fn example_less_than_position_mode() {
-        let code = &[3, 9, 7, 9, 10, 9, 4, 9, 99, -1, 8];
-        assert_eq!(execute(code, &[7],).output, [1]);
-        assert_eq!(execute(code, &[8],).output, [0]);
+        let program = &[3, 9, 7, 9, 10, 9, 4, 9, 99, -1, 8];
+        assert_eq!(execute(program, &[7],).output, [1]);
+        assert_eq!(execute(program, &[8],).output, [0]);
     }
 
     #[test]
@@ -265,60 +276,48 @@ mod spec {
 
     #[test]
     fn example_jumps_position_mode() {
-        let code = &[3, 12, 6, 12, 15, 1, 13, 14, 13, 4, 13, 99, -1, 0, 1, 9];
-        assert_eq!(execute(code, &[0],).output, [0]);
-        assert_eq!(execute(code, &[2],).output, [1]);
+        let program = &[3, 12, 6, 12, 15, 1, 13, 14, 13, 4, 13, 99, -1, 0, 1, 9];
+        assert_eq!(execute(program, &[0],).output, [0]);
+        assert_eq!(execute(program, &[2],).output, [1]);
     }
 
     #[test]
     fn example_jumps_immediate_mode() {
-        let code = &[3, 3, 1105, -1, 9, 1101, 0, 0, 12, 4, 12, 99, 1];
-        assert_eq!(execute(code, &[0],).output, [0]);
-        assert_eq!(execute(code, &[2],).output, [1]);
-    }
-
-    #[test]
-    fn passes_diagnostic_tests_day05() {
-        let output = Program::parse(crate::day05::INPUT).execute(vec![1]).output;
-        assert_eq!(output[0..output.len() - 1], [0, 0, 0, 0, 0, 0, 0, 0, 0]);
-    }
-
-    #[test]
-    fn passes_diagnostic_tests_day09() {
-        let output = Program::parse(crate::day09::INPUT).execute(vec![1]).output;
-        assert_eq!(output[0..output.len() - 1], []);
+        let program = &[3, 3, 1105, -1, 9, 1101, 0, 0, 12, 4, 12, 99, 1];
+        assert_eq!(execute(program, &[0],).output, [0]);
+        assert_eq!(execute(program, &[2],).output, [1]);
     }
 
     #[test]
     fn example_larger() {
-        let code = &[
+        let program = &[
             3, 21, 1008, 21, 8, 20, 1005, 20, 22, 107, 8, 21, 20, 1006, 20, 31, 1106, 0, 36, 98, 0,
             0, 1002, 21, 125, 20, 4, 20, 1105, 1, 46, 104, 999, 1105, 1, 46, 1101, 1000, 1, 20, 4,
             20, 1105, 1, 46, 98, 99,
         ];
 
-        assert_eq!(execute(code, &[7],).output, [999]);
-        assert_eq!(execute(code, &[8],).output, [1000]);
-        assert_eq!(execute(code, &[9],).output, [1001]);
+        assert_eq!(execute(program, &[7],).output, [999]);
+        assert_eq!(execute(program, &[8],).output, [1000]);
+        assert_eq!(execute(program, &[9],).output, [1001]);
     }
 
     #[test]
     fn quine() {
-        let code = &[
+        let program = &[
             109, 1, 204, -1, 1001, 100, 1, 100, 1008, 100, 16, 101, 1006, 101, 0, 99,
         ];
-        assert_eq!(execute(code, &[],).output, code);
+        assert_eq!(execute(program, &[],).output, program);
     }
 
     #[test]
     fn large_number() {
-        let code = &[1102, 34915192, 34915192, 7, 4, 7, 99, 0];
-        assert_eq!(execute(code, &[],).output, [1219070632396864]);
+        let program = &[1102, 34915192, 34915192, 7, 4, 7, 99, 0];
+        assert_eq!(execute(program, &[],).output, [1219070632396864]);
     }
 
     #[test]
     fn large_output() {
-        let code = &[104, 1125899906842624, 99];
-        assert_eq!(execute(code, &[],).output, [1125899906842624]);
+        let program = &[104, 1125899906842624, 99];
+        assert_eq!(execute(program, &[],).output, [1125899906842624]);
     }
 }

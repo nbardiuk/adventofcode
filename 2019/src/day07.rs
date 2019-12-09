@@ -1,15 +1,15 @@
-use crate::intcode::Program;
+use crate::intcode::Computer;
 use itertools::Itertools;
 
 pub const INPUT: &str = include_str!("../res/day07.txt");
 
 pub fn part1(input: &str) -> i64 {
-    let program = Program::parse(input);
+    let computer = Computer::parse(input);
     (0..5)
         .permutations(5)
         .map(|settings| {
             settings.into_iter().fold(0, |output, setting| {
-                program.clone().call(vec![setting, output])
+                computer.clone().call(vec![setting, output])
             })
         })
         .max()
@@ -17,15 +17,15 @@ pub fn part1(input: &str) -> i64 {
 }
 
 pub fn part2(input: &str) -> i64 {
-    let program = Program::parse(input);
+    let computer = Computer::parse(input);
     (5..10)
         .permutations(5)
         .map(|settings| {
-            let mut prog_a = program.clone();
-            let mut prog_b = program.clone();
-            let mut prog_c = program.clone();
-            let mut prog_d = program.clone();
-            let mut prog_e = program.clone();
+            let mut comp_a = computer.clone();
+            let mut comp_b = computer.clone();
+            let mut comp_c = computer.clone();
+            let mut comp_d = computer.clone();
+            let mut comp_e = computer.clone();
 
             let mut e2a = vec![settings[0], 0];
             let mut a2b = vec![settings[1]];
@@ -33,13 +33,13 @@ pub fn part2(input: &str) -> i64 {
             let mut c2d = vec![settings[3]];
             let mut d2e = vec![settings[4]];
             loop {
-                a2b.append(&mut prog_a.iteration(&mut e2a).flush_output());
-                b2c.append(&mut prog_b.iteration(&mut a2b).flush_output());
-                c2d.append(&mut prog_c.iteration(&mut b2c).flush_output());
-                d2e.append(&mut prog_d.iteration(&mut c2d).flush_output());
-                e2a.append(&mut prog_e.iteration(&mut d2e).flush_output());
+                a2b.append(&mut comp_a.iteration(&mut e2a).flush_output());
+                b2c.append(&mut comp_b.iteration(&mut a2b).flush_output());
+                c2d.append(&mut comp_c.iteration(&mut b2c).flush_output());
+                d2e.append(&mut comp_d.iteration(&mut c2d).flush_output());
+                e2a.append(&mut comp_e.iteration(&mut d2e).flush_output());
 
-                if prog_e.has_terminated() {
+                if comp_e.has_terminated {
                     return e2a.last().cloned().unwrap();
                 }
             }

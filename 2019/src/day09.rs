@@ -1,13 +1,13 @@
-use crate::intcode::Program;
+use crate::intcode::Computer;
 
 pub const INPUT: &str = include_str!("../res/day09.txt");
 
 pub fn part1(input: &str) -> i64 {
-    Program::parse(input).call(vec![1])
+    Computer::parse(input).call(vec![1])
 }
 
 pub fn part2(input: &str) -> i64 {
-    Program::parse(input).call(vec![2])
+    Computer::parse(input).call(vec![2])
 }
 
 #[cfg(test)]
