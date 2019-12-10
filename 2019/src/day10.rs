@@ -1,97 +1,84 @@
 use std::collections::BTreeMap;
-use std::collections::BTreeSet;
+use std::collections::HashSet;
+use std::f32::consts::FRAC_PI_2;
+
 pub const INPUT: &str = include_str!("../res/day10.txt");
 
-pub fn part1(input: &str) -> usize {
-    let asteroids = input
-        .lines()
-        .enumerate()
-        .flat_map(|(y, line)| {
-            line.chars()
-                .enumerate()
-                .filter_map(|(x, ch)| if ch == '#' { Some((x, y)) } else { None })
-                .collect::<Vec<_>>()
-        })
-        .collect::<Vec<_>>();
-
-    asteroids
+pub fn part1(input: &str) -> Option<usize> {
+    let asteriods = parse_positions(input);
+    asteriods
         .iter()
-        .map(|&asteroid| {
-            let angles = asteroids
-                .iter()
-                .filter(|&a| a != &asteroid)
-                .map(|&a| angle(a, asteroid))
-                .collect::<BTreeSet<_>>();
-            angles.len()
-        })
+        .map(|&a| count_visible_from(a, &asteriods))
         .max()
-        .unwrap()
 }
 
-pub fn part2(input: &str) -> usize {
-    let asteroids = input
-        .lines()
-        .enumerate()
-        .flat_map(|(y, line)| {
-            line.chars()
-                .enumerate()
-                .filter_map(|(x, ch)| if ch == '#' { Some((x, y)) } else { None })
-                .collect::<Vec<_>>()
-        })
-        .collect::<Vec<_>>();
-
-    let position = asteroids
+pub fn part2(input: &str) -> Option<u16> {
+    let asteroids = parse_positions(input);
+    let monitoring = asteroids
         .iter()
-        .max_by_key(|&&asteroid| {
-            let angles = asteroids
-                .iter()
-                .filter(|&&a| a != asteroid)
-                .map(|&a| angle(a, asteroid))
-                .collect::<BTreeSet<_>>();
-            angles.len()
-        })
-        .cloned()
-        .unwrap();
+        .max_by_key(|&&p| count_visible_from(p, &asteroids))
+        .cloned()?;
 
-    let mut map = BTreeMap::new();
-    for a in asteroids {
-        if a != position {
-            let ang = angle(a, position);
-            let d = distance(a, position);
-            let v = map.entry(ang).or_insert_with(Vec::new);
-            if let Err(i) = &v.binary_search(&(d, a)) {
-                v.insert(*i, (d, a));
+    let mut mutlivalue_map = BTreeMap::new();
+    for asteroid in asteroids {
+        if asteroid != monitoring {
+            let key = angle(asteroid, monitoring);
+            let value = (distance(asteroid, monitoring), asteroid);
+            let values = mutlivalue_map.entry(key).or_insert_with(Vec::new);
+            if let Err(i) = &values.binary_search(&value) {
+                values.insert(*i, value);
             }
         }
     }
 
     let mut count = 0;
-    while !map.is_empty() {
-        let keys: Vec<_> = map.keys().cloned().collect();
-        for key in keys {
+    while !mutlivalue_map.is_empty() {
+        for key in mutlivalue_map.keys().cloned().collect::<Vec<_>>() {
             count += 1;
-            if let Some(values) = map.get_mut(&key) {
-                let (_, a) = values.remove(0);
+            if let Some(values) = mutlivalue_map.get_mut(&key) {
+                let (_, (x, y)) = values.remove(0);
                 if values.is_empty() {
-                    map.remove(&key);
+                    mutlivalue_map.remove(&key);
                 }
                 if count == 200 {
-                    return a.0 * 100 + a.1;
+                    return Some(x * 100 + y);
                 }
             }
         }
     }
-
-    0
+    None
 }
 
-fn distance((ax, ay): (usize, usize), (bx, by): (usize, usize)) -> u64 {
-    (((by as f64 - ay as f64).powi(2) - (bx as f64 - ax as f64).powi(2)).powf(0.5)
-        * 1_000_000_000.0) as u64
+fn parse_positions(input: &str) -> Vec<(u16, u16)> {
+    input
+        .lines()
+        .enumerate()
+        .flat_map(|(y, line)| {
+            line.chars()
+                .enumerate()
+                .filter_map(move |(x, ch)| match ch {
+                    '#' => Some((x as u16, y as u16)),
+                    _ => None,
+                })
+        })
+        .collect()
 }
-fn angle((ax, ay): (usize, usize), (bx, by): (usize, usize)) -> u64 {
-    (((by as f64 - ay as f64).atan2(bx as f64 - ax as f64) - std::f64::consts::PI / 2.)
-        * 1_000_000_000.0) as u64
+
+fn count_visible_from(asteroid: (u16, u16), asteroids: &[(u16, u16)]) -> usize {
+    asteroids
+        .iter()
+        .filter(|&&a| a != asteroid)
+        .map(|&a| angle(a, asteroid))
+        .collect::<HashSet<_>>()
+        .len()
+}
+
+fn distance((ax, ay): (u16, u16), (bx, by): (u16, u16)) -> u16 {
+    (((by as f32 - ay as f32).powi(2) - (bx as f32 - ax as f32).powi(2)).powf(0.5)) as u16
+}
+
+fn angle((ax, ay): (u16, u16), (bx, by): (u16, u16)) -> u16 {
+    (((by as f32 - ay as f32).atan2(bx as f32 - ax as f32) - FRAC_PI_2) * 1000.0) as u16
 }
 
 #[cfg(test)]
@@ -108,7 +95,7 @@ mod spec {
                  ....#\n\
                  ...##"
             ),
-            8
+            Some(8)
         )
     }
 
@@ -127,7 +114,7 @@ mod spec {
                  ##...#..#.\n\
                  .#....####"
             ),
-            33
+            Some(33)
         )
     }
 
@@ -146,7 +133,7 @@ mod spec {
                  ......#...\n\
                  .####.###."
             ),
-            35
+            Some(35)
         )
     }
     #[test]
@@ -164,7 +151,7 @@ mod spec {
                  .##...##.#\n\
                  .....#.#.."
             ),
-            41
+            Some(41)
         )
     }
 
@@ -193,13 +180,13 @@ mod spec {
                  #.#.#.#####.####.###\n\
                  ###.##.####.##.#..##"
             ),
-            210
+            Some(210)
         )
     }
 
     #[test]
     fn part1_my_input() {
-        assert_eq!(part1(INPUT), 329)
+        assert_eq!(part1(INPUT), Some(329))
     }
 
     #[test]
@@ -227,11 +214,12 @@ mod spec {
                  #.#.#.#####.####.###\n\
                  ###.##.####.##.#..##"
             ),
-            802
+            Some(802)
         )
     }
+
     #[test]
     fn part2_my_input() {
-        assert_eq!(part2(INPUT), 512)
+        assert_eq!(part2(INPUT), Some(512))
     }
 }
