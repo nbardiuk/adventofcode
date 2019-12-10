@@ -20,28 +20,28 @@ pub fn part2(input: &str) -> Option<u16> {
         .max_by_key(|&&p| count_visible_from(p, &asteroids))
         .cloned()?;
 
-    let mut mutlivalue_map = BTreeMap::new();
+    let mut visible_at_angle = BTreeMap::new();
     for asteroid in asteroids {
         if asteroid != monitoring {
-            let key = angle(asteroid, monitoring);
-            let value = (distance(asteroid, monitoring), asteroid);
-            let values = mutlivalue_map.entry(key).or_insert_with(Vec::new);
-            if let Err(i) = &values.binary_search(&value) {
-                values.insert(*i, value);
+            let angle = angle(asteroid, monitoring);
+            let distance_asteroid = (distance(asteroid, monitoring), asteroid);
+            let visible = visible_at_angle.entry(angle).or_insert_with(Vec::new);
+            if let Err(i) = &visible.binary_search(&distance_asteroid) {
+                visible.insert(*i, distance_asteroid);
             }
         }
     }
 
-    let mut count = 0;
-    while !mutlivalue_map.is_empty() {
-        for key in mutlivalue_map.keys().cloned().collect::<Vec<_>>() {
-            count += 1;
-            if let Some(values) = mutlivalue_map.get_mut(&key) {
-                let (_, (x, y)) = values.remove(0);
-                if values.is_empty() {
-                    mutlivalue_map.remove(&key);
+    let mut destroyed = 0;
+    while !visible_at_angle.is_empty() {
+        for angle in visible_at_angle.keys().cloned().collect::<Vec<_>>() {
+            if let Some(visible) = visible_at_angle.get_mut(&angle) {
+                destroyed += 1;
+                let (_, (x, y)) = visible.remove(0);
+                if visible.is_empty() {
+                    visible_at_angle.remove(&angle);
                 }
-                if count == 200 {
+                if destroyed == 200 {
                     return Some(x * 100 + y);
                 }
             }
