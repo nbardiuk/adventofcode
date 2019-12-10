@@ -22,8 +22,13 @@ day! { day09 }
 day! { day10 }
 
 criterion_group! {
-    name = benches;
+    name = microseconds;
     config = Criterion::default().noise_threshold(0.07);
-    targets = day01, day02, day03, day04, day05, day06, day07, day08, day09, day10
+    targets = day01, day02, day03, day05, day06, day07, day08,
 }
-criterion_main!(benches);
+criterion_group! {
+    name = milliseconds;
+    config = Criterion::default().sample_size(30).noise_threshold(0.07);
+    targets = day04, day09, day10
+}
+criterion_main!(microseconds, milliseconds);
