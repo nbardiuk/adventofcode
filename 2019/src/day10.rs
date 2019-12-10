@@ -1,3 +1,4 @@
+use rayon::prelude::*;
 use std::collections::BTreeMap;
 use std::collections::HashSet;
 use std::f32::consts::FRAC_PI_2;
@@ -7,7 +8,7 @@ pub const INPUT: &str = include_str!("../res/day10.txt");
 pub fn part1(input: &str) -> Option<usize> {
     let asteriods = parse_positions(input);
     asteriods
-        .iter()
+        .par_iter()
         .map(|&a| count_visible_from(a, &asteriods))
         .max()
 }
@@ -15,7 +16,7 @@ pub fn part1(input: &str) -> Option<usize> {
 pub fn part2(input: &str) -> Option<u16> {
     let asteroids = parse_positions(input);
     let monitoring = asteroids
-        .iter()
+        .par_iter()
         .max_by_key(|&&p| count_visible_from(p, &asteroids))
         .cloned()?;
 
