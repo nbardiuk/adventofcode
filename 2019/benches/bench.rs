@@ -19,10 +19,11 @@ day! { day06 }
 day! { day07 }
 day! { day08 }
 day! { day09 }
+day! { day10 }
 
 criterion_group! {
     name = benches;
     config = Criterion::default().noise_threshold(0.07);
-    targets = day01, day02, day03, day04, day05, day06, day07, day08, day09
+    targets = day01, day02, day03, day04, day05, day06, day07, day08, day09, day10
 }
 criterion_main!(benches);
