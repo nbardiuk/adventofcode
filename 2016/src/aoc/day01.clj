@@ -21,9 +21,8 @@
     ["W" "R"] [[x (- y distance)] , "N"]
     ["W" "L"] [[x (+ y distance)] , "S"]))
 
-(defn distance [position]
-  (let [[x y] position]
-    (+ (Math/abs x) (Math/abs y))))
+(defn distance [[x y]]
+  (+ (Math/abs x) (Math/abs y)))
 
 (defn part1 [input]
   (let [commands (parse-commands input)
