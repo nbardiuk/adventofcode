@@ -4,67 +4,62 @@ use std::collections::HashMap;
 pub const INPUT: &str = include_str!("../res/day11.txt");
 
 pub fn part1(input: &str) -> usize {
-    let mut computer = Computer::parse(input);
+    let computer = Computer::parse(input);
+    let panels = HashMap::new();
 
-    let mut position: (i16, i16) = (0, 0);
-    let mut orientation: (i16, i16) = (0, -1);
+    paint(computer, panels).len()
+}
+
+pub fn part2(input: &str) -> Vec<String> {
+    let computer = Computer::parse(input);
+
     let mut panels = HashMap::new();
-    loop {
-        computer.iteration(&mut vec![panels.get(&position).cloned().unwrap_or(0)]);
-        let output = computer.flush_output();
+    panels.insert((0, 0), true);
 
-        if let [color, direction] = output[..] {
+    pprint(paint(computer, panels))
+}
+
+type Panels = HashMap<(i8, i8), bool>;
+
+fn paint(mut computer: Computer, mut panels: Panels) -> Panels {
+    let mut position = (0, 0);
+    let mut orientation = (0, -1);
+    loop {
+        let current_color = panels.get(&position).cloned().unwrap_or(false) as i64;
+        let command = computer.iteration(&mut vec![current_color]).flush_output();
+
+        if let [color, direction] = command[..] {
+            panels.insert(position, color == 1);
             orientation = match direction {
                 0 => (orientation.1, -orientation.0),
                 _ => (-orientation.1, orientation.0),
             };
-            panels.insert(position, color);
             position = (position.0 + orientation.0, position.1 + orientation.1);
         }
 
         if computer.has_terminated {
-            return panels.len();
+            return panels;
         }
     }
 }
-pub fn part2(input: &str) -> Vec<String> {
-    let mut computer = Computer::parse(input);
 
-    let mut position: (i16, i16) = (0, 0);
-    let mut orientation: (i16, i16) = (0, -1);
-    let mut panels = HashMap::new();
-    panels.insert(position, 1);
-    loop {
-        computer.iteration(&mut vec![panels.get(&position).cloned().unwrap_or(0)]);
-        let output = computer.flush_output();
+fn pprint(panels: Panels) -> Vec<String> {
+    let columns = panels.keys().map(|(x, _)| x).max().cloned().unwrap_or(0);
+    let rows = panels.keys().map(|(_, y)| y).max().cloned().unwrap_or(0);
 
-        if let [color, direction] = output[..] {
-            orientation = match direction {
-                0 => (orientation.1, -orientation.0),
-                _ => (-orientation.1, orientation.0),
+    let mut canvas = vec![];
+    for y in 0..=rows {
+        let mut row = String::new();
+        for x in 0..columns {
+            let c = match panels.get(&(x, y)) {
+                Some(true) => '█',
+                _ => ' ',
             };
-            panels.insert(position, color);
-            position = (position.0 + orientation.0, position.1 + orientation.1);
+            row.push(c);
         }
-
-        if computer.has_terminated {
-            let columns = panels.keys().map(|(x, _)| x).max().cloned().unwrap_or(0);
-            let rows = panels.keys().map(|(_, y)| y).max().cloned().unwrap_or(0);
-            let mut result = vec![];
-            for y in 0..=rows {
-                let mut row = String::new();
-                for x in 0..columns {
-                    let c = match panels.get(&(x, y)) {
-                        Some(1) => '█',
-                        _ => ' ',
-                    };
-                    row.push(c);
-                }
-                result.push(row);
-            }
-            return result;
-        }
+        canvas.push(row);
     }
+    canvas
 }
 
 #[cfg(test)]
