@@ -13,24 +13,24 @@
    [nil \A  \B \C  nil]
    [nil nil \D nil nil]])
 
-(defn label [keyboard [x y]]
-  (get (get keyboard y) x))
+(defn label [board [x y]]
+  (-> board (get y) (get x)))
 
-(defn move [keyboard [x y] direction]
-  (let [next-position (case direction
-                        \U [x (- y 1)]
-                        \D [x (+ y 1)]
-                        \L [(- x 1) y]
-                        \R [(+ x 1) y])]
-    (if (label keyboard next-position) next-position [x y])))
+(defn move [board [x y :as position] direction]
+  (let [candidate (case direction
+                    \U [x (- y 1)]
+                    \D [x (+ y 1)]
+                    \L [(- x 1) y]
+                    \R [(+ x 1) y])]
+    (if (label board candidate) candidate position)))
 
-(defn moves [keyboard position directions]
-  (reduce (partial move keyboard) position directions))
+(defn moves [board position directions]
+  (reduce (partial move board) position directions))
 
-(defn decode [input keyboard start]
+(defn decode [input board start]
   (let [lines  (cs/split-lines input)
-        points (reductions (partial moves keyboard) start lines)
-        labels (drop 1 (map (partial label keyboard) points) )]
+        points (reductions (partial moves board) start lines)
+        labels (drop 1 (map (partial label board) points))]
     (apply str labels)))
 
 (defn part1 [input]
