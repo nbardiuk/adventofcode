@@ -5,28 +5,25 @@
 
 (defn parse-command [word]
   (let [[direction distance] (split-at 1 word)]
-    [(apply str direction ) (read-string (apply str distance ))]))
+    [(apply str direction) (read-string (apply str distance))]))
 
 (defn parse-commands [line] 
   (map parse-command (words line)))
 
-(defn navigate [[[x y] orientation] [direction distance]] 
-  (case [orientation direction]
-    ["N" "R"] [[(+ x distance) y] , "E"]
-    ["N" "L"] [[(- x distance) y] , "W"]
-    ["E" "R"] [[x (+ y distance)] , "S"]
-    ["E" "L"] [[x (- y distance)] , "N"]
-    ["S" "R"] [[(- x distance) y] , "W"]
-    ["S" "L"] [[(+ x distance) y] , "E"]
-    ["W" "R"] [[x (- y distance)] , "N"]
-    ["W" "L"] [[x (+ y distance)] , "S"]))
+(defn navigate [[[x y] [i j]] [direction distance]] 
+  (let [[i j] (case direction
+                "L" [(- j) i]
+                "R" [j (- i)])
+        x (+ x (* distance i))
+        y (+ y (* distance j))]
+    [[x y] [i j]]))
 
 (defn distance [[x y]]
   (+ (Math/abs x) (Math/abs y)))
 
 (defn part1 [input]
   (let [commands (parse-commands input)
-        [position] (reduce navigate [[0 0] "N"] commands)]
+        [position] (reduce navigate [[0 0] [0 -1]] commands)]
     (distance position)))
 
 (defn xrange [from to] (range from to (if (> from to) -1 1)))
@@ -47,7 +44,7 @@
 
 (defn part2 [input]
   (let [commands (parse-commands input)
-        navigation (reductions navigate [[0 0] "N"] commands)
+        navigation (reductions navigate [[0 0] [0 -1]] commands)
         turns (map first navigation)
         [traces] (reduce track ['() [0 0]] turns)]
     (distance (first-duplicate traces))))
