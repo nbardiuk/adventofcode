@@ -18,6 +18,79 @@ pub fn part1(input: &str) -> u16 {
     total_energy(&moons, 1000)
 }
 
+pub fn part2(input: &str) -> u64 {
+    let mut moons: Vec<V3> = vec![];
+    let re = Regex::new(r"<x=(-?\d+), y=(-?\d+), z=(-?\d+)>").unwrap();
+    for cap in re.captures_iter(input) {
+        moons.push((
+            cap[1].parse().unwrap(),
+            cap[2].parse().unwrap(),
+            cap[3].parse().unwrap(),
+        ));
+    }
+
+    let moons = moons.iter().map(|&p| (p, (0, 0, 0))).collect::<Vec<_>>();
+    let a = cycle(&moons, |p| p.0);
+    let b = cycle(&moons, |p| p.1);
+    let c = cycle(&moons, |p| p.2);
+    lcd(lcd(a, b), c)
+}
+
+fn lcd(a: u64, b: u64) -> u64 {
+    a * b / gcd(a, b)
+}
+
+fn gcd(mut u: u64, mut v: u64) -> u64 {
+    // https://en.wikipedia.org/wiki/Binary_GCD_algorithm#Iterative_version_in_C
+    if u == 0 {
+        return v;
+    };
+    if v == 0 {
+        return u;
+    };
+    let mut shift = 0;
+    while ((u | v) & 1) == 0 {
+        shift += 1;
+        u >>= 1;
+        v >>= 1;
+    }
+    while (u & 1) == 0 {
+        u >>= 1;
+    }
+    loop {
+        while (v & 1) == 0 {
+            v >>= 1;
+        }
+        if u > v {
+            std::mem::swap(&mut u, &mut v);
+        }
+        v -= u;
+        if v == 0 {
+            break;
+        }
+    }
+    u << shift
+}
+
+fn cycle(moons: &[(V3, V3)], p: fn(&V3) -> i16) -> u64 {
+    let projection = |m: &[(V3, V3)]| {
+        m.iter()
+            .map(|(pos, vel)| (p(pos), p(vel)))
+            .collect::<Vec<_>>()
+    };
+    let start = projection(moons);
+
+    let mut count = 0;
+    let mut moons = Vec::from(moons);
+    loop {
+        count += 1;
+        moons = gravity(&moons);
+        if start == projection(&moons) {
+            return count;
+        }
+    }
+}
+
 type V3 = (i16, i16, i16);
 fn sum((ax, ay, az): V3) -> u16 {
     (ax.abs() + ay.abs() + az.abs()) as u16
@@ -103,5 +176,35 @@ mod spec {
     #[test]
     fn part1_my_input() {
         assert_eq!(part1(INPUT), 7928);
+    }
+
+    #[test]
+    fn part2_small_example() {
+        assert_eq!(
+            part2(
+                "<x=-1, y=0, z=2>\n\
+                 <x=2, y=-10, z=-7>\n\
+                 <x=4, y=-8, z=8>\n\
+                 <x=3, y=5, z=-1>"
+            ),
+            2772
+        );
+    }
+
+    #[test]
+    fn part2_big_example() {
+        assert_eq!(
+            part2(
+                "<x=-8, y=-10, z=0>\n\
+                 <x=5, y=5, z=10>\n\
+                 <x=2, y=-7, z=3>\n\
+                 <x=9, y=-8, z=-3>"
+            ),
+            4686774924
+        );
+    }
+    #[test]
+    fn part2_my_input() {
+        assert_eq!(part2(INPUT), 518311327635164);
     }
 }
