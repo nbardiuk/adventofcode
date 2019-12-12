@@ -12,8 +12,9 @@
     (= checksum code)))
 
 (defn decrypt [shift word]
-  (let [ds (map (fn [c] (char (+ (int \a) (mod (+ (- (int c) (int \a)) shift) 26)))) word)]
-    (apply str ds)))
+  (let [a (int \a)
+        letters (map #(-> % int (- a) (+ shift) (mod 26) (+ a) char) word)]
+    (apply str letters)))
 
 (defn decrypt-message [[encoded sector _]]
   (let [words (cs/split encoded #"-")
