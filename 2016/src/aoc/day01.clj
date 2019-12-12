@@ -7,10 +7,10 @@
   (let [[direction distance] (split-at 1 word)]
     [(apply str direction) (read-string (apply str distance))]))
 
-(defn parse-commands [line] 
+(defn parse-commands [line]
   (map parse-command (words line)))
 
-(defn navigate [[[x y] [i j]] [direction distance]] 
+(defn navigate [[[x y] [i j]] [direction distance]]
   (let [[i j] (case direction
                 "L" [(- j) i]
                 "R" [j (- i)])
@@ -34,7 +34,7 @@
                 (map #(-> [from-x %]) (xrange from-y to-y)))]
     [(concat result trace) [to-x to-y]]))
 
-(defn seen? [[ x xs ]] (contains? xs x))
+(defn seen? [[x xs]] (contains? xs x))
 
 (defn first-duplicate [items]
   (let [inits (reductions conj #{} items)

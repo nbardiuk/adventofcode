@@ -1,7 +1,7 @@
 (ns aoc.day02-bench
-  (:require [libra.bench :refer [defbench is]]
-            [libra.criterium :refer [quick-bench]]
-            [aoc.day02 :refer [part1 part2]]))
+  (:require [aoc.day02 :refer [part1 part2]]
+            [libra.bench :refer [defbench is]]
+            [libra.criterium :refer [quick-bench]]))
 
 (def input (slurp "./resources/day02.txt"))
 
