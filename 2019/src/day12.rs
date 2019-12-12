@@ -1,130 +1,98 @@
+use num_integer::*;
 use regex::Regex;
 
-pub const INPUT: &str = "<x=5, y=-1, z=5>\n\
-                         <x=0, y=-14, z=2>\n\
-                         <x=16, y=4, z=0>\n\
-                         <x=18, y=1, z=16>";
+pub const INPUT: &str = "<x=5, y=-1, z=5>\n<x=0, y=-14, z=2>\n<x=16, y=4, z=0>\n<x=18, y=1, z=16>";
 
 pub fn part1(input: &str) -> u16 {
-    let mut moons: Vec<V3> = vec![];
-    let re = Regex::new(r"<x=(-?\d+), y=(-?\d+), z=(-?\d+)>").unwrap();
-    for cap in re.captures_iter(input) {
-        moons.push((
-            cap[1].parse().unwrap(),
-            cap[2].parse().unwrap(),
-            cap[3].parse().unwrap(),
-        ));
-    }
-    total_energy(&moons, 1000)
+    let moons = read_initial_state(input);
+    total_energy(moons, 1000)
 }
 
 pub fn part2(input: &str) -> u64 {
-    let mut moons: Vec<V3> = vec![];
+    let moons = read_initial_state(input);
+    if let [Some(x), Some(y), Some(z)] = repeats_projections(moons) {
+        x.lcm(&y).lcm(&z)
+    } else {
+        0
+    }
+}
+
+fn read_initial_state(input: &str) -> Vec<(V3, V3)> {
     let re = Regex::new(r"<x=(-?\d+), y=(-?\d+), z=(-?\d+)>").unwrap();
-    for cap in re.captures_iter(input) {
-        moons.push((
-            cap[1].parse().unwrap(),
-            cap[2].parse().unwrap(),
-            cap[3].parse().unwrap(),
-        ));
-    }
-
-    let moons = moons.iter().map(|&p| (p, (0, 0, 0))).collect::<Vec<_>>();
-    let a = cycle(&moons, |p| p.0);
-    let b = cycle(&moons, |p| p.1);
-    let c = cycle(&moons, |p| p.2);
-    lcd(lcd(a, b), c)
+    re.captures_iter(input)
+        .map(|capture| {
+            let x = capture[1].parse().unwrap();
+            let y = capture[2].parse().unwrap();
+            let z = capture[3].parse().unwrap();
+            ([x, y, z], [0, 0, 0])
+        })
+        .collect()
 }
 
-fn lcd(a: u64, b: u64) -> u64 {
-    a * b / gcd(a, b)
-}
+fn repeats_projections(mut moons: Vec<(V3, V3)>) -> [Option<u64>; 3] {
+    let projection = |m: &[(V3, V3)], i| m.iter().map(|(p, v)| (p[i], v[i])).collect::<Vec<_>>();
 
-fn gcd(mut u: u64, mut v: u64) -> u64 {
-    // https://en.wikipedia.org/wiki/Binary_GCD_algorithm#Iterative_version_in_C
-    if u == 0 {
-        return v;
-    };
-    if v == 0 {
-        return u;
-    };
-    let mut shift = 0;
-    while ((u | v) & 1) == 0 {
-        shift += 1;
-        u >>= 1;
-        v >>= 1;
-    }
-    while (u & 1) == 0 {
-        u >>= 1;
-    }
-    loop {
-        while (v & 1) == 0 {
-            v >>= 1;
-        }
-        if u > v {
-            std::mem::swap(&mut u, &mut v);
-        }
-        v -= u;
-        if v == 0 {
-            break;
-        }
-    }
-    u << shift
-}
-
-fn cycle(moons: &[(V3, V3)], p: fn(&V3) -> i16) -> u64 {
-    let projection = |m: &[(V3, V3)]| {
-        m.iter()
-            .map(|(pos, vel)| (p(pos), p(vel)))
-            .collect::<Vec<_>>()
-    };
-    let start = projection(moons);
+    let start = [
+        projection(&moons, 0),
+        projection(&moons, 1),
+        projection(&moons, 2),
+    ];
 
     let mut count = 0;
-    let mut moons = Vec::from(moons);
+    let mut repeats = [None, None, None];
     loop {
         count += 1;
-        moons = gravity(&moons);
-        if start == projection(&moons) {
-            return count;
+        moons = gravity(moons);
+        for i in 0..repeats.len() {
+            if repeats[i].is_none() && start[i] == projection(&moons, i) {
+                repeats[i] = Some(count);
+            }
+        }
+        if repeats.iter().all(|i| i.is_some()) {
+            return repeats;
         }
     }
 }
 
-type V3 = (i16, i16, i16);
-fn sum((ax, ay, az): V3) -> u16 {
-    (ax.abs() + ay.abs() + az.abs()) as u16
+type V3 = [i16; 3];
+
+fn sum(v: V3) -> u16 {
+    (v[0].abs() + v[1].abs() + v[2].abs()) as u16
 }
 
-fn add((ax, ay, az): V3, (bx, by, bz): V3) -> V3 {
-    (ax + bx, ay + by, az + bz)
+fn add(a: V3, b: V3) -> V3 {
+    [a[0] + b[0], a[1] + b[1], a[2] + b[2]]
 }
 
-fn pull((ax, ay, az): V3, (bx, by, bz): V3) -> V3 {
-    let x = (bx - ax).signum();
-    let y = (by - ay).signum();
-    let z = (bz - az).signum();
-    (x, y, z)
+fn sub(a: V3, b: V3) -> V3 {
+    [a[0] - b[0], a[1] - b[1], a[2] - b[2]]
 }
 
-fn gravity(moons: &[(V3, V3)]) -> Vec<(V3, V3)> {
-    let mut result = vec![];
+fn pull(a: V3, b: V3) -> V3 {
+    [
+        (b[0] - a[0]).signum(),
+        (b[1] - a[1]).signum(),
+        (b[2] - a[2]).signum(),
+    ]
+}
 
-    for &moon in moons {
-        let (position, velocity) = moon;
-        let rest = moons.iter().filter(|&&m| m != moon);
-        let dv = rest.map(|(p, _)| pull(position, *p)).fold((0, 0, 0), add);
-        let velocity = add(velocity, dv);
-        result.push((add(position, velocity), velocity))
+fn gravity(mut moons: Vec<(V3, V3)>) -> Vec<(V3, V3)> {
+    for i in 0..moons.len() {
+        for j in i + 1..moons.len() {
+            let dv = pull(moons[i].0, moons[j].0);
+            moons[i].1 = add(moons[i].1, dv);
+            moons[j].1 = sub(moons[j].1, dv);
+        }
     }
-
-    result
+    for moon in moons.iter_mut() {
+        moon.0 = add(moon.0, moon.1);
+    }
+    moons
 }
 
-fn total_energy(moons: &[V3], steps: u16) -> u16 {
-    let mut moons = moons.iter().map(|&p| (p, (0, 0, 0))).collect::<Vec<_>>();
+fn total_energy(mut moons: Vec<(V3, V3)>, steps: u16) -> u16 {
     for _ in 0..steps {
-        moons = gravity(&moons);
+        moons = gravity(moons);
     }
     moons.iter().map(|(p, v)| sum(*p) * sum(*v)).sum()
 }
@@ -135,24 +103,23 @@ mod spec {
 
     #[test]
     fn check_pull() {
-        assert_eq!(pull((5, -1, 2), (0, 14, 2)), (-1, 1, 0));
+        assert_eq!(pull([5, -1, 2], [0, 14, 2]), [-1, 1, 0]);
     }
 
     #[test]
     fn check_gravity() {
-        let moons = [
-            ((-1, 0, 2), (0, 0, 0)),
-            ((2, -10, -7), (0, 0, 0)),
-            ((4, -8, 8), (0, 0, 0)),
-            ((3, 5, -1), (0, 0, 0)),
-        ];
         assert_eq!(
-            gravity(&moons),
+            gravity(vec![
+                ([-1, 0, 2], [0, 0, 0]),
+                ([2, -10, -7], [0, 0, 0]),
+                ([4, -8, 8], [0, 0, 0]),
+                ([3, 5, -1], [0, 0, 0]),
+            ]),
             [
-                ((2, -1, 1), (3, -1, -1)),
-                ((3, -7, -4), (1, 3, 3)),
-                ((1, -7, 5), (-3, 1, -3)),
-                ((2, 2, 0), (-1, -3, 1)),
+                ([2, -1, 1], [3, -1, -1]),
+                ([3, -7, -4], [1, 3, 3]),
+                ([1, -7, 5], [-3, 1, -3]),
+                ([2, 2, 0], [-1, -3, 1]),
             ]
         );
     }
@@ -160,7 +127,15 @@ mod spec {
     #[test]
     fn total_energy_10_steps() {
         assert_eq!(
-            total_energy(&[(-1, 0, 2), (2, -10, -7), (4, -8, 8), (3, 5, -1)], 10),
+            total_energy(
+                vec![
+                    ([-1, 0, 2], [0, 0, 0]),
+                    ([2, -10, -7], [0, 0, 0]),
+                    ([4, -8, 8], [0, 0, 0]),
+                    ([3, 5, -1], [0, 0, 0])
+                ],
+                10
+            ),
             179
         );
     }
@@ -168,7 +143,15 @@ mod spec {
     #[test]
     fn total_energy_100_steps() {
         assert_eq!(
-            total_energy(&[(-8, -10, 0), (5, 5, 10), (2, -7, 3), (9, -8, -3)], 100),
+            total_energy(
+                vec![
+                    ([-8, -10, 0], [0, 0, 0]),
+                    ([5, 5, 10], [0, 0, 0]),
+                    ([2, -7, 3], [0, 0, 0]),
+                    ([9, -8, -3], [0, 0, 0])
+                ],
+                100
+            ),
             1940
         );
     }
@@ -203,6 +186,7 @@ mod spec {
             4686774924
         );
     }
+
     #[test]
     fn part2_my_input() {
         assert_eq!(part2(INPUT), 518311327635164);
