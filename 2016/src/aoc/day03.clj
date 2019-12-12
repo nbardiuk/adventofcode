@@ -18,6 +18,6 @@
 
 (defn part2 [input]
   (let [nums (parse-numbers input)
-        by-cols (flatten (map (fn [i] (map #(nth % i) nums)) (range 3)))
+        by-cols (mapcat (fn [i] (map #(nth % i) nums)) (range 3))
         tripples (partition 3 by-cols)]
     (count (filter triangle? tripples))))
