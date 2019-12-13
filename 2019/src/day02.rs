@@ -17,7 +17,8 @@ pub fn part2(input: &str) -> Option<i64> {
 fn call(mut computer: Computer, noun: i64, verb: i64) -> i64 {
     computer.memory[1] = noun;
     computer.memory[2] = verb;
-    computer.iteration(&mut vec![]).memory[0]
+    computer.run();
+    computer.memory[0]
 }
 
 #[cfg(test)]

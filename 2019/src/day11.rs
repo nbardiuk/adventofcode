@@ -24,11 +24,11 @@ type Panels = HashMap<(i8, i8), bool>;
 fn paint(mut computer: Computer, mut panels: Panels) -> Panels {
     let mut position = (0, 0);
     let mut orientation = (0, -1);
+    let mut input = vec![];
     loop {
-        let current_color = panels.get(&position).cloned().unwrap_or(false) as i64;
-        let command = computer.iteration(&mut vec![current_color]).flush_output();
+        input.push(panels.get(&position).cloned().unwrap_or(false) as i64);
 
-        if let [color, direction] = command[..] {
+        if let [color, direction] = computer.process(&mut input)[..] {
             panels.insert(position, color == 1);
             orientation = match direction {
                 0 => (orientation.1, -orientation.0),
@@ -37,7 +37,7 @@ fn paint(mut computer: Computer, mut panels: Panels) -> Panels {
             position = (position.0 + orientation.0, position.1 + orientation.1);
         }
 
-        if computer.has_terminated {
+        if computer.halted {
             return panels;
         }
     }

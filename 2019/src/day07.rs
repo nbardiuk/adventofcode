@@ -33,13 +33,13 @@ pub fn part2(input: &str) -> i64 {
             let mut c2d = vec![settings[3]];
             let mut d2e = vec![settings[4]];
             loop {
-                a2b.append(&mut comp_a.iteration(&mut e2a).flush_output());
-                b2c.append(&mut comp_b.iteration(&mut a2b).flush_output());
-                c2d.append(&mut comp_c.iteration(&mut b2c).flush_output());
-                d2e.append(&mut comp_d.iteration(&mut c2d).flush_output());
-                e2a.append(&mut comp_e.iteration(&mut d2e).flush_output());
+                a2b.append(&mut comp_a.process(&mut e2a));
+                b2c.append(&mut comp_b.process(&mut a2b));
+                c2d.append(&mut comp_c.process(&mut b2c));
+                d2e.append(&mut comp_d.process(&mut c2d));
+                e2a.append(&mut comp_e.process(&mut d2e));
 
-                if comp_e.has_terminated {
+                if comp_e.halted {
                     return e2a.last().cloned().unwrap();
                 }
             }

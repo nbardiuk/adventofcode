@@ -4,10 +4,9 @@ pub const INPUT: &str = include_str!("../res/day13.txt");
 
 pub fn part1(input: &str) -> usize {
     Computer::parse(input)
-        .iteration(&mut vec![])
-        .flush_output()
+        .run()
         .chunks(3)
-        .filter(|chunk| match chunk[..] {
+        .filter(|tripple| match tripple[..] {
             [_, _, 2] => true,
             _ => false,
         })
@@ -22,15 +21,15 @@ pub fn part2(input: &str) -> i64 {
         let mut score = 0;
         let mut paddlex = 0;
         let mut ballx = 0;
-        for chunk in computer.iteration(&mut input).flush_output().chunks(3) {
-            match chunk[..] {
+        for tripple in computer.process(&mut input).chunks(3) {
+            match tripple[..] {
                 [-1, 0, s] => score = s,
                 [x, _, 3] => paddlex = x,
                 [x, _, 4] => ballx = x,
                 _ => {}
             }
         }
-        if computer.has_terminated {
+        if computer.halted {
             return score;
         }
         input.push((ballx - paddlex).signum());
