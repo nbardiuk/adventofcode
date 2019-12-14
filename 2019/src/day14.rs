@@ -3,146 +3,117 @@ use std::collections::HashSet;
 pub const INPUT: &str = include_str!("../res/day14.txt");
 
 pub fn part1(input: &str) -> usize {
-    fn parse_pair(pair: &str) -> Option<(String, usize)> {
-        if let [am, labl] = pair.split_whitespace().collect::<Vec<_>>()[..] {
-            Some((labl.to_string(), am.parse().unwrap()))
-        } else {
-            None
-        }
-    };
-
-    let data = input
-        .lines()
-        .filter_map(|line| {
-            if let [ingredients, result] = line.split(" => ").collect::<Vec<_>>()[..] {
-                parse_pair(result).map(|result| {
-                    (
-                        result,
-                        ingredients.split(", ").filter_map(parse_pair).collect(),
-                    )
-                })
-            } else {
-                None
-            }
-        })
-        .collect::<Vec<_>>();
-
-    temp((String::from("FUEL"), 1), &data)
-        .get("ORE")
-        .cloned()
-        .unwrap_or(0)
+    let reactions_table = parse_data(input);
+    required_ore(
+        ("FUEL", 1),
+        &reactions_table,
+        &ingredients_depth(&reactions_table),
+    )
 }
 
 pub fn part2(input: &str) -> usize {
-    fn parse_pair(pair: &str) -> Option<(String, usize)> {
-        if let [am, labl] = pair.split_whitespace().collect::<Vec<_>>()[..] {
-            Some((labl.to_string(), am.parse().unwrap()))
-        } else {
-            None
-        }
-    };
+    let reactions_table = parse_data(input);
+    let depth = ingredients_depth(&reactions_table);
 
-    let data = input
-        .lines()
-        .filter_map(|line| {
-            if let [ingredients, result] = line.split(" => ").collect::<Vec<_>>()[..] {
-                parse_pair(result).map(|result| {
-                    (
-                        result,
-                        ingredients.split(", ").filter_map(parse_pair).collect(),
-                    )
-                })
-            } else {
-                None
-            }
-        })
-        .collect::<Vec<_>>();
-
-    let mut current = 1;
-    let goal = 1_000000_000000_usize;
+    let budget = 1_000000_000000_usize;
+    let mut fuel = 1;
     let mut range_start = 1;
     let mut range_end = 100_000000;
     loop {
-        if range_start + 1 == range_end {
-            return range_start;
+        let ore = required_ore(("FUEL", fuel), &reactions_table, &depth);
+        if ore > budget {
+            range_end = fuel;
+        } else if ore < budget {
+            range_start = fuel;
         }
-        let result = temp((String::from("FUEL"), current), &data) .get("ORE") .cloned() .unwrap_or(0);
-        if result > goal {
-            range_end = current;
-            current = range_start + (range_end - range_start) / 2;
-        } else if result == goal {
-            return current;
-        } else {
-            range_start = current;
-            current = range_start + (range_end - range_start) / 2;
+        fuel = range_start + (range_end - range_start) / 2;
+        if ore == budget || range_start == range_end - 1 {
+            return fuel;
         }
     }
 }
 
-type Res = (String, usize);
-type Ing = Vec<Res>;
-fn temp((resource, amount): Res, data: &[(Res, Ing)]) -> HashMap<String, usize> {
-    let mut ingredients: HashMap<String, usize> = data
-        .iter()
-        .find(|(r, _)| r.0 == resource)
-        .map(|(_, i)| {
-            i.iter()
-                .map(|(n, v)| (n.clone(), v * amount))
-                .collect::<HashMap<_, _>>()
-        })
+type Resource<'a> = (&'a str, usize);
+type Ingredients<'a> = Vec<Resource<'a>>;
+type Table<'a> = HashMap<&'a str, (usize, Ingredients<'a>)>;
+
+fn required_ore<'a>(
+    (resource, amount): Resource<'a>,
+    reactions_table: &Table<'a>,
+    depth: &HashMap<&'a str, usize>,
+) -> usize {
+    let mut ingredients: HashMap<&'a str, usize> = reactions_table
+        .get(resource)
+        .map(|(_, is)| is.iter().map(|(n, v)| (*n, v * amount)).collect())
         .unwrap_or_else(HashMap::new);
-    let mut leftovers = HashMap::new();
+
     loop {
         if ingredients.len() == 1 {
-            break;
+            return *ingredients.values().next().unwrap();
         }
-        if let Some((name, need)) = ingredients
-            .clone()
-            .iter()
-            .max_by_key(|(n, _)| unique_elements(n, data).len())
-        {
-            let (left, used) = data
+
+        let (reagent, need): (&str, usize) = {
+            let (name, need) = ingredients
                 .iter()
-                .find(|(a, _)| name == &a.0)
-                .map(|((_, produces), i)| {
-                    let mut k = need / produces;
-                    if need % produces != 0 {
-                        k += 1;
-                    }
-                    (
-                        (name, (produces * k) - need),
-                        i.iter()
-                            .map(|(a, b)| (a.clone(), k * *b))
-                            .collect::<Vec<_>>(),
-                    )
-                })
-                .unwrap_or(((name, 0), vec![]));
-            leftovers.insert(left.0.to_string(), left.1);
-            ingredients.remove(name);
+                .max_by_key(|&(name, _)| depth.get(name).unwrap_or(&0))
+                .unwrap();
+            (name, *need)
+        };
+        ingredients.remove(reagent);
+
+        if let Some((produced, used)) = reactions_table.get(reagent) {
+            let (div, rem) = (need / produced, need % produced);
+            let reactions = div + if rem == 0 { 0 } else { 1 };
             for (n, a) in used {
-                ingredients.entry(n).and_modify(|ea| *ea += a).or_insert(a);
+                let r = reactions * a;
+                ingredients.entry(n).and_modify(|e| *e += r).or_insert(r);
             }
-        } else {
-            break;
         }
     }
-    ingredients
 }
 
-fn unique_elements(name: &str, data: &[(Res, Ing)]) -> HashSet<String> {
+fn ingredients_depth<'a>(reactions_table: &Table<'a>) -> HashMap<&'a str, usize> {
+    reactions_table
+        .keys()
+        .map(|name| (*name, unique_elements(name, reactions_table).len()))
+        .collect()
+}
+
+fn unique_elements<'a>(name: &'a str, reactions_table: &Table<'a>) -> HashSet<&'a str> {
     let mut result = HashSet::new();
-    let ingredients = data
-        .iter()
-        .find(|(r, _)| r.0 == name)
-        .map(|(_, i)| i)
-        .cloned()
-        .unwrap_or(vec![]);
-    for (n, _) in ingredients {
-        if result.insert(n.to_string()) {
-            result.extend(unique_elements(&n, data));
+    if let Some((_, ingredients)) = reactions_table.get(name) {
+        for (n, _) in ingredients {
+            if result.insert(*n) {
+                result.extend(unique_elements(&n, reactions_table));
+            }
         }
     }
     result
+}
+
+fn parse_pair(pair: &str) -> Option<(&str, usize)> {
+    if let [amount, name] = pair.split_whitespace().collect::<Vec<_>>()[..] {
+        Some((name, amount.parse().unwrap()))
+    } else {
+        None
+    }
+}
+
+fn parse_data(input: &'_ str) -> Table<'_> {
+    let lines = input.lines();
+    let pairs = lines.filter_map(|line| match line.split(" => ").collect::<Vec<_>>()[..] {
+        [ingredients, result] => parse_pair(result).map(|(name, amount)| {
+            (
+                name,
+                (
+                    amount,
+                    ingredients.split(", ").filter_map(parse_pair).collect(),
+                ),
+            )
+        }),
+        _ => None,
+    });
+    pairs.collect()
 }
 
 #[cfg(test)]
@@ -315,7 +286,7 @@ mod spec {
         assert_eq!(part1(INPUT), 612880);
     }
 
-     #[test]
+    #[test]
     fn part2_my_input() {
         assert_eq!(part2(INPUT), 2509120);
     }
