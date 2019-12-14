@@ -23,6 +23,7 @@ day! { day10 }
 day! { day11 }
 day! { day12 }
 day! { day13 }
+day! { day14 }
 
 criterion_group! {
     name = microseconds;
@@ -37,6 +38,6 @@ criterion_group! {
 criterion_group! {
     name = hundreds_millis;
     config = Criterion::default().sample_size(10).noise_threshold(0.07);
-    targets = day12
+    targets = day12, day14
 }
 criterion_main!(microseconds, milliseconds, hundreds_millis);
