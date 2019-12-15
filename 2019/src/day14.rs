@@ -4,21 +4,20 @@ pub const INPUT: &str = include_str!("../res/day14.txt");
 
 pub fn part1(input: &str) -> usize {
     let reactions_table = parse_data(input);
-    required_ore(
-        ("FUEL", 1),
-        &reactions_table,
-        &ingredients_depth(&reactions_table),
-    )
+    let depth = ingredients_depth(&reactions_table);
+    required_ore(("FUEL", 1), &reactions_table, &depth)
 }
 
 pub fn part2(input: &str) -> usize {
     let reactions_table = parse_data(input);
     let depth = ingredients_depth(&reactions_table);
 
+    let probe = required_ore(("FUEL", 1), &reactions_table, &depth);
     let budget = 1_000000_000000_usize;
-    let mut fuel = 1;
-    let mut range_start = 1;
-    let mut range_end = 100_000000;
+    let ratio = (budget / probe) as f32;
+    let mut range_start = ratio as usize;
+    let mut fuel = (1.5 * ratio) as usize;
+    let mut range_end = (2. * ratio) as usize;
     loop {
         let ore = required_ore(("FUEL", fuel), &reactions_table, &depth);
         if ore > budget {
@@ -42,34 +41,30 @@ fn required_ore<'a>(
     reactions_table: &Table<'a>,
     depth: &HashMap<&'a str, usize>,
 ) -> usize {
-    let mut ingredients: HashMap<&'a str, usize> = reactions_table
-        .get(resource)
-        .map(|(_, is)| is.iter().map(|(n, v)| (*n, v * amount)).collect())
-        .unwrap_or_else(HashMap::new);
+    let by_depth = |name| (depth.get(name).unwrap_or(&0), name);
 
-    loop {
-        if ingredients.len() == 1 {
-            return *ingredients.values().next().unwrap();
+    let mut reaction_queue = match reactions_table.get(resource) {
+        Some((_, is)) => is.iter().map(|(n, v)| (*n, v * amount)).collect(),
+        None => vec![],
+    };
+    reaction_queue.sort_by_key(|(name, _)| by_depth(*name));
+
+    while let Some((reagent, need)) = reaction_queue.pop() {
+        if reaction_queue.is_empty() {
+            return need;
         }
-
-        let (reagent, need): (&str, usize) = {
-            let (name, need) = ingredients
-                .iter()
-                .max_by_key(|&(name, _)| depth.get(name).unwrap_or(&0))
-                .unwrap();
-            (name, *need)
-        };
-        ingredients.remove(reagent);
-
-        if let Some((produced, used)) = reactions_table.get(reagent) {
-            let (div, rem) = (need / produced, need % produced);
-            let reactions = div + if rem == 0 { 0 } else { 1 };
-            for (n, a) in used {
-                let r = reactions * a;
-                ingredients.entry(n).and_modify(|e| *e += r).or_insert(r);
+        if let Some((produces, using)) = reactions_table.get(reagent) {
+            let cycles = (need as f64 / *produces as f64).ceil() as usize;
+            for (name, amount) in using {
+                let used = cycles * amount;
+                match reaction_queue.binary_search_by_key(&(by_depth(name)), |(n, _)| by_depth(n)) {
+                    Ok(i) => reaction_queue[i].1 += used,
+                    Err(i) => reaction_queue.insert(i, (name, used)),
+                }
             }
         }
     }
+    0
 }
 
 fn ingredients_depth<'a>(reactions_table: &Table<'a>) -> HashMap<&'a str, usize> {
@@ -81,10 +76,13 @@ fn ingredients_depth<'a>(reactions_table: &Table<'a>) -> HashMap<&'a str, usize>
 
 fn unique_elements<'a>(name: &'a str, reactions_table: &Table<'a>) -> HashSet<&'a str> {
     let mut result = HashSet::new();
-    if let Some((_, ingredients)) = reactions_table.get(name) {
-        for (n, _) in ingredients {
-            if result.insert(*n) {
-                result.extend(unique_elements(&n, reactions_table));
+    let mut queue = vec![name];
+    while let Some(name) = queue.pop() {
+        if let Some((_, ingredients)) = reactions_table.get(name) {
+            for (element, _) in ingredients {
+                if result.insert(*element) {
+                    queue.push(element);
+                }
             }
         }
     }
