@@ -1,7 +1,9 @@
 use num_integer::*;
+use rayon::prelude::*;
 use regex::Regex;
 
 pub const INPUT: &str = "<x=5, y=-1, z=5>\n<x=0, y=-14, z=2>\n<x=16, y=4, z=0>\n<x=18, y=1, z=16>";
+type V3 = [i16; 3];
 
 pub fn part1(input: &str) -> u16 {
     let moons = read_initial_state(input);
@@ -10,11 +12,10 @@ pub fn part1(input: &str) -> u16 {
 
 pub fn part2(input: &str) -> u64 {
     let moons = read_initial_state(input);
-    if let [Some(x), Some(y), Some(z)] = repeats_projections(moons) {
-        x.lcm(&y).lcm(&z)
-    } else {
-        0
-    }
+    (0..3_usize)
+        .into_par_iter()
+        .map(|i| repeats_projection(&moons, i))
+        .reduce(|| 1, |a, b| a.lcm(&b))
 }
 
 fn read_initial_state(input: &str) -> Vec<(V3, V3)> {
@@ -29,100 +30,52 @@ fn read_initial_state(input: &str) -> Vec<(V3, V3)> {
         .collect()
 }
 
-fn repeats_projections(mut moons: Vec<(V3, V3)>) -> [Option<u64>; 3] {
-    let projection = |m: &[(V3, V3)], i| m.iter().map(|(p, v)| (p[i], v[i])).collect::<Vec<_>>();
-
-    let start = [
-        projection(&moons, 0),
-        projection(&moons, 1),
-        projection(&moons, 2),
-    ];
-
+fn repeats_projection(moons: &[(V3, V3)], i: usize) -> u64 {
+    let mut moons = moons.iter().map(|(p, v)| (p[i], v[i])).collect::<Vec<_>>();
+    let start = moons.clone();
     let mut count = 0;
-    let mut repeats = [None, None, None];
     loop {
         count += 1;
         moons = gravity(moons);
-        for i in 0..repeats.len() {
-            if repeats[i].is_none() && start[i] == projection(&moons, i) {
-                repeats[i] = Some(count);
-            }
-        }
-        if repeats.iter().all(|i| i.is_some()) {
-            return repeats;
+        if start == moons {
+            return count;
         }
     }
 }
 
-type V3 = [i16; 3];
-
-fn sum(v: V3) -> u16 {
-    (v[0].abs() + v[1].abs() + v[2].abs()) as u16
-}
-
-fn add(a: V3, b: V3) -> V3 {
-    [a[0] + b[0], a[1] + b[1], a[2] + b[2]]
-}
-
-fn sub(a: V3, b: V3) -> V3 {
-    [a[0] - b[0], a[1] - b[1], a[2] - b[2]]
-}
-
-fn pull(a: V3, b: V3) -> V3 {
-    [
-        (b[0] - a[0]).signum(),
-        (b[1] - a[1]).signum(),
-        (b[2] - a[2]).signum(),
-    ]
-}
-
-fn gravity(mut moons: Vec<(V3, V3)>) -> Vec<(V3, V3)> {
+fn gravity(mut moons: Vec<(i16, i16)>) -> Vec<(i16, i16)> {
     for i in 0..moons.len() {
         for j in i + 1..moons.len() {
-            let dv = pull(moons[i].0, moons[j].0);
-            moons[i].1 = add(moons[i].1, dv);
-            moons[j].1 = sub(moons[j].1, dv);
+            let dv = (moons[j].0 - moons[i].0).signum();
+            moons[i].1 += dv;
+            moons[j].1 -= dv;
         }
     }
     for moon in moons.iter_mut() {
-        moon.0 = add(moon.0, moon.1);
+        moon.0 += moon.1;
     }
     moons
 }
 
-fn total_energy(mut moons: Vec<(V3, V3)>, steps: u16) -> u16 {
-    for _ in 0..steps {
-        moons = gravity(moons);
+fn total_energy(moons: Vec<(V3, V3)>, steps: u16) -> u16 {
+    let mut energies = vec![(0_u16, 0_u16); moons.len()];
+    for i in 0..3 {
+        let mut moons = moons.iter().map(|(p, v)| (p[i], v[i])).collect();
+        for _ in 0..steps {
+            moons = gravity(moons);
+        }
+
+        for i in 0..energies.len() {
+            energies[i].0 += moons[i].0.abs() as u16;
+            energies[i].1 += moons[i].1.abs() as u16;
+        }
     }
-    moons.iter().map(|(p, v)| sum(*p) * sum(*v)).sum()
+    energies.iter().map(|(pot, kin)| pot * kin).sum()
 }
 
 #[cfg(test)]
 mod spec {
     use super::*;
-
-    #[test]
-    fn check_pull() {
-        assert_eq!(pull([5, -1, 2], [0, 14, 2]), [-1, 1, 0]);
-    }
-
-    #[test]
-    fn check_gravity() {
-        assert_eq!(
-            gravity(vec![
-                ([-1, 0, 2], [0, 0, 0]),
-                ([2, -10, -7], [0, 0, 0]),
-                ([4, -8, 8], [0, 0, 0]),
-                ([3, 5, -1], [0, 0, 0]),
-            ]),
-            [
-                ([2, -1, 1], [3, -1, -1]),
-                ([3, -7, -4], [1, 3, 3]),
-                ([1, -7, 5], [-3, 1, -3]),
-                ([2, 2, 0], [-1, -3, 1]),
-            ]
-        );
-    }
 
     #[test]
     fn total_energy_10_steps() {
