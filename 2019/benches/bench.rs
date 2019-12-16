@@ -38,8 +38,8 @@ criterion_group! {
     targets = day04, day09, day10, day11, day12, day13, day15
 }
 criterion_group! {
-    name = hundrets_millis;
+    name = centiseconds;
     config = Criterion::default().sample_size(10).noise_threshold(0.07);
     targets = day16
 }
-criterion_main!(microseconds, milliseconds, hundrets_millis);
+criterion_main!(microseconds, milliseconds, centiseconds);
