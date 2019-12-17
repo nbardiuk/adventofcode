@@ -26,11 +26,12 @@ day! { day13 }
 day! { day14 }
 day! { day15 }
 day! { day16 }
+day! { day17 }
 
 criterion_group! {
     name = microseconds;
     config = Criterion::default().noise_threshold(0.07);
-    targets = day01, day02, day03, day05, day06, day07, day08, day14
+    targets = day01, day02, day03, day05, day06, day07, day08, day14, day17
 }
 criterion_group! {
     name = milliseconds;
