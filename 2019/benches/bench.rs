@@ -31,12 +31,12 @@ day! { day17 }
 criterion_group! {
     name = microseconds;
     config = Criterion::default().noise_threshold(0.07);
-    targets = day01, day02, day03, day05, day06, day07, day08, day14, day17
+    targets = day01, day02, day03, day05, day06, day07, day08, day14
 }
 criterion_group! {
     name = milliseconds;
     config = Criterion::default().sample_size(30).noise_threshold(0.07);
-    targets = day04, day09, day10, day11, day12, day13, day15
+    targets = day04, day09, day10, day11, day12, day13, day15, day17
 }
 criterion_group! {
     name = centiseconds;
