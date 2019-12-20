@@ -30,7 +30,7 @@ fn distance(
 
             let mut between = between;
             if let Some(&ch) = items.get(&neighbour) {
-                if ch != '@' {
+                if ch != '@' && !ch.is_digit(10) {
                     between.add(ch.to_ascii_lowercase() as u8 - 'a' as u8);
                 }
             }
@@ -42,6 +42,103 @@ fn distance(
     None
 }
 
+pub fn part2(input: &str) -> usize {
+    let mut walls = HashSet::new();
+    let mut start = (0, 0);
+    let mut items = HashMap::new();
+    for (y, line) in input.lines().enumerate() {
+        for (x, v) in line.chars().enumerate() {
+            let position = (x as i64, y as i64);
+            if "#".contains(v) {
+                walls.insert(position);
+            } else if "@".contains(v) {
+                start = position;
+                items.insert(position, v);
+            } else if !".\n".contains(v) {
+                items.insert(position, v);
+            }
+        }
+    }
+
+    for (i, j) in &[(-1, 0), (1, 0), (0, 1), (0, -1), (0, 0)] {
+        let n = (start.0 + i, start.1 + j);
+        walls.insert(n);
+    }
+
+    items.remove(&start);
+    for (r, (i, j)) in [(-1, -1), (1, 1), (-1, 1), (1, -1)].iter().enumerate() {
+        let n = (start.0 + i, start.1 + j);
+        items.insert(n, ('0' as u8 + r as u8) as char);
+    }
+
+    let mut distances: HashMap<char, HashMap<char, (usize, BitSet)>> = HashMap::new();
+    for (a_pos, a) in items.iter() {
+        if !(a.is_ascii_lowercase() || a.is_digit(10)) {
+            continue;
+        }
+        for (b_pos, b) in items.iter() {
+            if a == b
+                || !(b.is_ascii_lowercase() || b.is_digit(10))
+                || distances.get(a).filter(|m| m.contains_key(b)).is_some()
+            {
+                continue;
+            }
+            if let Some((distance, between)) = distance(*a_pos, *b_pos, &walls, &items) {
+                distances
+                    .entry(*a)
+                    .or_default()
+                    .insert(*b, (distance, between));
+                distances
+                    .entry(*b)
+                    .or_default()
+                    .insert(*a, (distance, between));
+            }
+        }
+    }
+
+    let keys_count = items.values().filter(|&c| c.is_ascii_lowercase()).count();
+
+    let mut best = HashMap::new();
+    let mut queue = BinaryHeap::new();
+    queue.push((
+        Reverse(0_usize),
+        Reverse(0_usize),
+        vec!['0', '1', '2', '3'],
+        BitSet::default(),
+    ));
+    while let Some((_, Reverse(dist_u), us, keys)) = queue.pop() {
+        if keys.len() == keys_count {
+            return dist_u;
+        }
+        for i in 0..us.len() {
+            let u = us[i];
+            for (v, (len_u_v, between)) in distances[&u].iter() {
+                if v.is_digit(10) {
+                    continue;
+                }
+                if !keys.contains_all(*between) {
+                    continue;
+                }
+                if keys.contains(*v as u8 - 'a' as u8) {
+                    continue;
+                }
+                let mut keys = keys;
+                if !v.is_digit(10) {
+                    keys.add(*v as u8 - 'a' as u8);
+                }
+                let mut us = us.clone();
+                us[i] = *v;
+                let next = (us.clone(), keys);
+                let alternative = dist_u.saturating_add(*len_u_v);
+                if alternative < *best.get(&next).unwrap_or(&std::usize::MAX) {
+                    best.insert(next, alternative);
+                    queue.push((Reverse(keys.len()), Reverse(alternative), us, keys));
+                }
+            }
+        }
+    }
+    0
+}
 pub fn part1(input: &str) -> usize {
     let mut walls = HashSet::new();
     let mut start = (0, 0);
@@ -187,7 +284,77 @@ mod spec {
     }
 
     #[test]
+    fn example2_8() {
+        assert_eq!(
+            part2(
+                "#######\n\
+                 #a.#Cd#\n\
+                 ##...##\n\
+                 ##.@.##\n\
+                 ##...##\n\
+                 #cB#Ab#\n\
+                 #######",
+            ),
+            8,
+        );
+    }
+
+    #[test]
+    fn example2_24() {
+        assert_eq!(
+            part2(
+                "###############\n\
+                 #d.ABC.#.....a#\n\
+                 ######...######\n\
+                 ######.@.######\n\
+                 ######...######\n\
+                 #b.....#.....c#\n\
+                 ###############",
+            ),
+            24,
+        );
+    }
+    #[test]
+    fn example2_32() {
+        assert_eq!(
+            part2(
+                "#############\n\
+                 #DcBa.#.GhKl#\n\
+                 #.###...#I###\n\
+                 #e#d#.@.#j#k#\n\
+                 ###C#...###J#\n\
+                 #fEbA.#.FgHi#\n\
+                 #############",
+            ),
+            32,
+        );
+    }
+
+    #[test]
+    fn example2_72() {
+        assert_eq!(
+            part2(
+                "#############\n\
+                 #g#f.D#..h#l#\n\
+                 #F###e#E###.#\n\
+                 #dCba...BcIJ#\n\
+                 #####.@.#####\n\
+                 #nK.L...G...#\n\
+                 #M###N#H###.#\n\
+                 #o#m..#i#jk.#\n\
+                 #############",
+            ),
+            72,
+        );
+    }
+
+    #[test]
     fn part1_my_input() {
         assert_eq!(part1(INPUT), 4270);
+    }
+
+    #[test]
+    fn part2_my_input() {
+        assert_eq!(part2(INPUT), 1982);
     }
 }
