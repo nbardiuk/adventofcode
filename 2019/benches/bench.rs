@@ -39,11 +39,11 @@ criterion_group! {
 criterion_group! {
     name = milliseconds;
     config = Criterion::default().sample_size(30).noise_threshold(0.07);
-    targets = day04, day09, day10, day11, day12, day13, day15, day17
+    targets = day04, day09, day10, day11, day12, day13, day15, day17, day20
 }
 criterion_group! {
     name = centiseconds;
     config = Criterion::default().sample_size(10).noise_threshold(0.07);
-    targets = day16, day18, day19, day20
+    targets = day16, day18, day19
 }
 criterion_main!(microseconds, milliseconds, centiseconds);
