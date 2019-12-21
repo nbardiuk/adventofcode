@@ -2,37 +2,43 @@ use crate::intcode::Computer;
 pub const INPUT: &str = include_str!("../res/day21.txt");
 
 pub fn part1(input: &str) -> i64 {
-    // Jump if D is ground
-    //   and there is any hole in A or B or C
+    // any hole in [ A, C ]
+    // and D is ground
+    //
+    // !(a && b) && d
+    //
     let program = "\
-NOT A J
-NOT B T
-OR T J
-NOT C T
-OR T J
+OR A J
+AND C J
+NOT J J
 AND D J
 WALK
 ";
-    Computer::parse(input).call(program.chars().map(|c| (c as u8) as i64).collect())
+    survey_hull(input, program)
 }
 
 pub fn part2(input: &str) -> i64 {
-    // Jumpt if D is ground
-    //   and there is any hole in A or B or C
-    //   and (H is ground or (H is hole and E is ground))
+    // any hole in [ A, B, C ]
+    // and D is ground
+    // and any is ground in [ H, E ]
+    //
+    // !(a && b && c) && d && (h || e)
+    //
     let program = "\
-NOT A J
-NOT B T
-OR T J
-NOT C T
-OR T J
-NOT H T
-AND E T
-OR H T
-AND T J
+OR A J
+AND B J
+AND C J
+NOT J J
 AND D J
+OR H T
+OR E T
+AND T J
 RUN
 ";
+    survey_hull(input, program)
+}
+
+fn survey_hull(input: &str, program: &str) -> i64 {
     Computer::parse(input).call(program.chars().map(|c| (c as u8) as i64).collect())
 }
 
