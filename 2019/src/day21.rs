@@ -2,6 +2,8 @@ use crate::intcode::Computer;
 pub const INPUT: &str = include_str!("../res/day21.txt");
 
 pub fn part1(input: &str) -> i64 {
+    // Jump if D is ground
+    //   and there is any hole in A or B or C
     let program = "\
 NOT A J
 NOT B T
@@ -15,6 +17,9 @@ WALK
 }
 
 pub fn part2(input: &str) -> i64 {
+    // Jumpt if D is ground
+    //   and there is any hole in A or B or C
+    //   and (H is ground or (H is hole and E is ground))
     let program = "\
 NOT A J
 NOT B T
