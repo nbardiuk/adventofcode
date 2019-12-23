@@ -9,7 +9,7 @@ test:
 
 .PHONY: tdd
 tdd:
-	git ls-files | entr -c time lein test $(lein-args)
+	fd --type file | entr -cr time lein trampoline test $(lein-args)
 
 .PHONY: bench
 bench:
