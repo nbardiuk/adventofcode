@@ -1,28 +1,24 @@
 use crate::intcode::Computer;
-use std::collections::HashSet;
+use std::ops::Range;
 
 pub const INPUT: &str = include_str!("../res/day23.txt");
 
+const IPS: Range<i64> = 0..50;
+
 pub fn part1(input: &str) -> i64 {
-    let mut computers = Vec::with_capacity(50);
-    let mut queues = Vec::with_capacity(50);
-    for i in 0..50 {
-        computers.push(Computer::parse(input));
-        queues.push(vec![i]);
-    }
+    let nic = Computer::parse(input);
+    let mut nics = IPS.map(|_| nic.clone()).collect::<Vec<_>>();
+    let mut queues = IPS.map(|ip| vec![ip]).collect::<Vec<_>>();
 
     loop {
-        for i in 0..50 {
+        for (i, nic) in nics.iter_mut().enumerate() {
             if queues[i].is_empty() {
                 queues[i].push(-1);
             }
-            for packet in computers[i].process(&mut queues[i]).chunks(3) {
+            for packet in nic.process(&mut queues[i]).chunks(3) {
                 match *packet {
                     [255, _, y] => return y,
-                    [dest, x, y] => {
-                        queues[dest as usize].push(x);
-                        queues[dest as usize].push(y);
-                    }
+                    [ip, x, y] => queues[ip as usize].extend(&[x, y]),
                     _ => {}
                 }
             }
@@ -31,34 +27,30 @@ pub fn part1(input: &str) -> i64 {
 }
 
 pub fn part2(input: &str) -> i64 {
-    let mut computers = Vec::with_capacity(50);
-    let mut queues = Vec::with_capacity(50);
-    for i in 0..50 {
-        computers.push(Computer::parse(input));
-        queues.push(vec![i]);
-    }
+    let nic = Computer::parse(input);
+    let mut nics = IPS.map(|_| nic.clone()).collect::<Vec<_>>();
+    let mut queues = IPS.map(|ip| vec![ip]).collect::<Vec<_>>();
 
     let mut nat = vec![-1];
-    let mut seen_y = HashSet::new();
+    let mut last_seen_y = None;
     loop {
-        for i in 0..50 {
+        for (i, nic) in nics.iter_mut().enumerate() {
             if queues[i].is_empty() {
-                if i == 0 && queues.iter().all(|q| q.is_empty()) {
-                    if nat.len() == 2 && !seen_y.insert(nat[1]) {
-                        return nat[1];
+                if i == 0 && queues.iter().all(|queue| queue.is_empty()) {
+                    if let [_, y] = nat[..] {
+                        if last_seen_y.replace(y) == Some(y) {
+                            return y;
+                        }
                     }
                     queues[i].extend(&nat);
                 } else {
                     queues[i].push(-1);
                 }
             }
-            for packet in computers[i].process(&mut queues[i]).chunks(3) {
+            for packet in nic.process(&mut queues[i]).chunks(3) {
                 match *packet {
                     [255, x, y] => nat = vec![x, y],
-                    [dest, x, y] => {
-                        queues[dest as usize].push(x);
-                        queues[dest as usize].push(y);
-                    }
+                    [ip, x, y] => queues[ip as usize].extend(&[x, y]),
                     _ => {}
                 }
             }
