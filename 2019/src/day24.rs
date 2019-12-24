@@ -8,133 +8,147 @@ pub const INPUT: (&str, usize) = (
     200,
 );
 
+const SIZE: i8 = 5;
+
 pub fn part1((input, _): (&str, usize)) -> u32 {
-    let size = 5;
-    let mut grid = BitSet::default();
-    for (y, line) in input.lines().enumerate() {
-        for (x, v) in line.chars().enumerate() {
-            let (x, y) = (x as u8, y as u8);
-            if "#".contains(v) {
-                grid.add(x + y * size);
-            }
+    let mut grid = FlatGrid::new(read_grid(input));
+    let mut seen = HashSet::new();
+    loop {
+        if !seen.insert(grid.cells) {
+            return grid.cells.bits;
         }
+        grid = grid.iteration();
+    }
+}
+
+struct FlatGrid {
+    cells: BitSet,
+}
+impl FlatGrid {
+    fn new(cells: BitSet) -> Self {
+        FlatGrid { cells }
     }
 
-    let mut seen = HashSet::new();
-    seen.insert(grid);
-    loop {
-        let mut next = BitSet::default();
-        for y in 0..size {
-            for x in 0..size {
-                let mut neighbours = 0;
-                for (i, j) in &[(-1, 0), (1, 0), (0, -1), (0, 1)] {
-                    let limit = |a: i8| {
-                        if a >= 0 && a < size as i8 {
-                            Some(a as u8)
-                        } else {
-                            None
-                        }
-                    };
-                    if let (Some(n), Some(m)) = (limit(x as i8 + i), limit(y as i8 + j)) {
-                        if grid.contains(n + m * size) {
-                            neighbours += 1;
-                        }
-                    }
-                }
-                let index = x + y * size;
-                if grid.contains(index) && neighbours == 1
-                    || !grid.contains(index) && [1, 2].contains(&neighbours)
-                {
-                    next.add(index);
+    fn iteration(&self) -> Self {
+        let mut next = FlatGrid::new(BitSet::default());
+        for x in 0..SIZE {
+            for y in 0..SIZE {
+                let neighbours = self.alive_neighbours(x, y);
+                if neighbours == 1 || neighbours == 2 && !self.is_alive(x, y) {
+                    next.set_alive(x, y);
                 }
             }
         }
-        let new_state = seen.insert(next);
-        if !new_state {
-            return next.bits;
-        }
-        grid = next;
+        next
+    }
+
+    fn is_alive(&self, x: i8, y: i8) -> bool {
+        0 <= x && x < SIZE && 0 <= y && y < SIZE && self.cells.contains((x + y * SIZE) as u8)
+    }
+
+    fn set_alive(&mut self, x: i8, y: i8) {
+        self.cells.add((x + y * SIZE) as u8)
+    }
+
+    fn alive_neighbours(&self, x: i8, y: i8) -> usize {
+        [(-1, 0), (1, 0), (0, -1), (0, 1)]
+            .iter()
+            .filter(|(i, j)| self.is_alive(x + i, y + j))
+            .count()
     }
 }
 
 pub fn part2((input, duration): (&str, usize)) -> u32 {
-    let size = 5;
-    let mut grid = BitSet::default();
-    for (y, line) in input.lines().enumerate() {
-        for (x, v) in line.chars().enumerate() {
-            let (x, y) = (x as u8, y as u8);
-            if "#".contains(v) {
-                grid.add(x + y * size);
-            }
-        }
+    let empty = BitSet::default();
+    let mut levels = vec![empty, read_grid(input), empty];
+    for _second in 0..duration {
+        levels = iteration(&levels);
     }
+    levels.iter().map(|level| level.len()).sum()
+}
 
-    let mut levels = vec![grid];
-    for _time in 0..duration {
-        let mut next_levels = vec![];
-        if levels[0].len() > 0 {
-            levels.insert(0, BitSet::default());
-        }
-        if levels[levels.len() - 1].len() > 0 {
-            levels.push(BitSet::default());
-        }
-        for (level, &grid) in levels.iter().enumerate() {
-            let mut next = BitSet::default();
-            for y in 0..size {
-                for x in 0..size {
-                    if x == 2 && y == 2 {
-                        continue;
-                    }
-                    let mut neighbours = 0;
-                    for &(i, j) in &[(-1, 0), (1, 0), (0, -1), (0, 1)] {
-                        let recur = |x: i8, y: i8| {
-                            if level > 0 && x == 2 && y == 2 {
-                                if j == 1 {
-                                    (0..size).map(|i| (level - 1, i)).collect()
-                                } else if j == -1 {
-                                    (0..size).map(|i| (level - 1, i + 4 * size)).collect()
-                                } else if i == 1 {
-                                    (0..size).map(|i| (level - 1, i * size)).collect()
-                                } else {
-                                    (0..size).map(|i| (level - 1, 4 + i * size)).collect()
-                                }
-                            } else if 0 <= x && x < size as i8 {
-                                if 0 <= y && y < size as i8 {
-                                    vec![(level, x as u8 + y as u8 * size)]
-                                } else if y < 0 {
-                                    vec![(level + 1, 7)]
-                                } else {
-                                    vec![(level + 1, 17)]
-                                }
-                            } else if x < 0 {
-                                vec![(level + 1, 11)]
-                            } else {
-                                vec![(level + 1, 13)]
-                            }
-                        };
-                        for (level, index) in recur(x as i8 + i, y as i8 + j) {
-                            if levels
-                                .get(level)
-                                .map(|grid| grid.contains(index))
-                                .unwrap_or(false)
-                            {
-                                neighbours += 1;
-                            }
-                        }
-                    }
-                    let index = x + y * size;
-                    if grid.contains(index) && neighbours == 1
-                        || !grid.contains(index) && [1, 2].contains(&neighbours)
-                    {
-                        next.add(index);
-                    }
+fn iteration(levels: &[BitSet]) -> Vec<BitSet> {
+    let mut next = vec![BitSet::default(); levels.len()];
+    for x in 0..SIZE {
+        for y in 0..SIZE {
+            if x == 2 && y == 2 {
+                continue;
+            }
+            for z in 0..levels.len() {
+                let index = x + y * SIZE;
+                let neighbours = neighbours(&levels, x, y, z);
+                if neighbours == 1 || neighbours == 2 && !levels[z].contains(index as u8) {
+                    next[z].add(index as u8);
                 }
             }
-            next_levels.push(next);
         }
-        levels = next_levels;
     }
-    levels.iter().map(|l| l.len()).sum()
+    if 0 < next[0].len() {
+        next.insert(0, BitSet::default());
+    }
+    if 0 < next[next.len() - 1].len() {
+        next.push(BitSet::default());
+    }
+    next
+}
+
+fn neighbours(levels: &[BitSet], x: i8, y: i8, z: usize) -> usize {
+    let mut neighbours = 0;
+    for &(i, j) in &[(-1, 0), (1, 0), (0, -1), (0, 1)] {
+        let recur = |a: i8, b: i8| {
+            if a == 2 && b == 2 {
+                if 0 < z {
+                    let z = z - 1;
+                    if j == 1 {
+                        (0..SIZE).map(|i| (z, i)).collect()
+                    } else if j == -1 {
+                        (0..SIZE).map(|i| (z, i + 4 * SIZE)).collect()
+                    } else if i == 1 {
+                        (0..SIZE).map(|i| (z, i * SIZE)).collect()
+                    } else {
+                        (0..SIZE).map(|i| (z, 4 + i * SIZE)).collect()
+                    }
+                } else {
+                    vec![]
+                }
+            } else if 0 <= a && a < SIZE {
+                if 0 <= b && b < SIZE {
+                    vec![(z, a + b * SIZE)]
+                } else if b < 0 {
+                    vec![(z + 1, 7)]
+                } else {
+                    vec![(z + 1, 17)]
+                }
+            } else {
+                let z = z + 1;
+                if a < 0 {
+                    vec![(z, 11)]
+                } else {
+                    vec![(z, 13)]
+                }
+            }
+        };
+        for (z, index) in recur(x + i, y + j) {
+            if levels
+                .get(z)
+                .map(|grid| grid.contains(index as u8))
+                .unwrap_or(false)
+            {
+                neighbours += 1;
+            }
+        }
+    }
+    neighbours
+}
+
+fn read_grid(input: &str) -> BitSet {
+    let mut grid = BitSet::default();
+    for (i, c) in input.chars().filter(|c| c != &'\n').enumerate() {
+        if c == '#' {
+            grid.add(i as u8);
+        }
+    }
+    grid
 }
 
 #[derive(Default, Debug, PartialEq, Hash, Eq, Clone, Copy, Ord, PartialOrd)]
@@ -159,19 +173,11 @@ impl BitSet {
 mod spec {
     use super::*;
 
+    const EXAMPLE: (&str, usize) = ("....#\n#..#.\n#..##\n..#..\n#....", 10);
+
     #[test]
     fn part1_example() {
-        assert_eq!(
-            part1((
-                "....#\n\
-                 #..#.\n\
-                 #..##\n\
-                 ..#..\n\
-                 #....",
-                10
-            )),
-            2129920
-        );
+        assert_eq!(part1(EXAMPLE), 2129920);
     }
 
     #[test]
@@ -181,17 +187,7 @@ mod spec {
 
     #[test]
     fn part2_example() {
-        assert_eq!(
-            part2((
-                "....#\n\
-                 #..#.\n\
-                 #..##\n\
-                 ..#..\n\
-                 #....",
-                10
-            )),
-            99
-        );
+        assert_eq!(part2(EXAMPLE), 99);
     }
 
     #[test]
