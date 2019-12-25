@@ -3,100 +3,36 @@ use crate::intcode::Computer;
 pub const INPUT: &str = include_str!("../res/day25.txt");
 
 pub fn part1(input: &str) -> i64 {
-    let mut computer = Computer::parse(input);
-
-    let mut commands = vec![
-        // to Gift Wrapping Center
-        "east",
+    let mut inputs = vec![
+        // Start at Hull Breach
+        "east", //  to Gift Wrapping Center
         "take sand",
-        // to Kitchen
-        // "east",
-        // "take molten lava"
-
-        // to Hull Breach
-        "west",
-        // to Crew Quarters
-        "south",
-        "take ornament",
-        // to Observatory
-        // "east",
-
-        // to Hull Breach
-        "north",
-        // to Sick Bay
-        "west",
-        // to Arcade
-        "south",
-        // "take giant electromagnet",
-
-        // to Holodeck
-        "south",
-        "take candy cane",
-        // to Arcade
-        "north",
-        // to Sick Bay
-        "north",
-        // to Hallway
-        "north",
+        "west",  // to Hull Breach
+        "west",  // to Sick Bay
+        "north", // to Hallway
         "take wreath",
-        // to Engineering
-        "east",
+        "east", //  to Engineering
         "take fixed point",
-        // to Hallway
-        "west",
-        // to Corridor ???
-        "north",
-        // "take infinite loop"
-
-        // to Passages
-        "north",
-        "take spool of cat6",
-        // to Corridor
-        "south",
-        // to Hallway
-        "south",
-        // to Sick Bay
-        "south",
-        // to Arcade
-        "south",
-        // to Warp Drive Maintance
-        "east",
-        // "take escape pod",
-
-        // to Navigation
-        "east",
-        // to Storage
-        "east",
+        "west",  // to Hallway
+        "south", // to Sick Bay
+        "south", // to Arcade
+        "east",  // to Warp Drive Maintance
+        "east",  // to Navigation
+        "east",  // to Storage
         "take space law space brochure",
-        // to Science Lab
-        "south",
-        "take fuel cell",
-        // to Scurity Checkpoint
-        "south",
-        "drop spool of cat6",
-        "drop ornament",
-        // "drop wreath",
-        // "drop sand",
-        "drop fuel cell",
-        // "drop fixed point",
-        // "drop space law space brochure",
-        "drop candy cane",
-        "inv",
-        // to Pressure-Sensitive Floor
-        "west",
-    ];
+        "south", // to Science Lab
+        "south", // to Scurity Checkpoint
+        "west",  // to Pressure-Sensitive Floor
+    ]
+    .join("\n");
+    inputs.push('\n');
 
-    commands.push("");
-    let mut chars = commands
-        .join("\n")
-        .chars()
-        .map(|c| (c as u8) as i64)
-        .collect();
-    let output = computer.process(&mut chars);
-    for c in output {
-        print!("{}", (c as u8) as char);
-    }
-    16778274
+    let mut encoded = inputs.chars().map(|c| (c as u8) as i64).collect::<Vec<_>>();
+    let output = Computer::parse(input).process(&mut encoded);
+    let text: String = output.iter().map(|i| (*i as u8) as char).collect();
+
+    assert!(text.ends_with("\"Oh, hello! You should be able to get in by typing 16778274 on the keypad at the main airlock.\"\n"));
+    text[text.len() - 45..][..8].parse().unwrap()
 }
 
 #[cfg(test)]
