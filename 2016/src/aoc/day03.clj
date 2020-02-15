@@ -1,23 +1,36 @@
 (ns aoc.day03
-  (:require [clojure.string :as cs]))
+  (:require [clojure.string :as s]))
 
-(defn triangle? [nums]
+(defn- parse-numbers [input]
+  (->> input
+       s/split-lines
+       (map s/trim)
+       (map #(s/split % #"\s+"))
+       (map #(map read-string %))))
+
+(defn- triangle? [nums]
   (let [[a b c] (sort nums)]
     (> (+ a b) c)))
 
-(defn parse-numbers [input]
-  (let [lines (cs/split-lines input)
-        lines (map cs/trim lines)
-        words (map #(cs/split % #"\s+") lines)
-        nums (map #(map read-string %) words)]
-    nums))
+(defn- transpose [[row & rows]]
+  (let [columns (map vector row)]
+    (reduce (partial map conj) columns rows)))
+
+(defn- tripples-by-columns [rows]
+  (->> rows
+       transpose
+       (apply concat)
+       (partition 3)))
 
 (defn part1 [input]
-  (let [nums (parse-numbers input)]
-    (count (filter triangle? nums))))
+  (->> input
+       parse-numbers
+       (filter triangle?)
+       count))
 
 (defn part2 [input]
-  (let [nums (parse-numbers input)
-        by-cols (mapcat (fn [i] (map #(nth % i) nums)) (range 3))
-        tripples (partition 3 by-cols)]
-    (count (filter triangle? tripples))))
+  (->> input
+       parse-numbers
+       tripples-by-columns
+       (filter triangle?)
+       count))
