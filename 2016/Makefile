@@ -7,10 +7,6 @@ endif
 test:
 	lein test $(lein-args)
 
-.PHONY: tdd
-tdd:
-	fd --type file | entr -cr time lein trampoline test $(lein-args)
-
 .PHONY: bench
 bench:
 	lein libra $(lein-args)
@@ -18,3 +14,22 @@ bench:
 .PHONY: clean
 clean:
 	lein clean
+
+.PHONY: tdd
+tdd: .nrepl-port
+	watchexec --clear --no-shell rep '(run-tests)'
+
+.PHONY: kill-repl
+kill-repl:
+	@if [ -f .nrepl-port ];\
+	then\
+		kill $$(lsof -ti ":$$(cat .nrepl-port)" -sTCP:LISTEN) ;\
+	fi
+
+.PHONY: repl
+repl: .nrepl-port
+	lein repl :connect
+	
+.nrepl-port:
+	lein repl :headless &
+	@until [ -f .nrepl-port ] ; do sleep 1; done
