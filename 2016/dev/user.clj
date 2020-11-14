@@ -2,15 +2,15 @@
   (:require [clojure.tools.namespace.repl :refer [refresh]]
             [eftest.runner :as eftest]))
 
-(defn- only? [x]
-  (or (-> x meta :only)
-      (-> x meta :ns meta :only)))
+(defn- only? [test]
+  (or (-> test meta :only)
+      (-> test meta :ns meta :only)))
 
-(defn- focus [xs]
-  (let [focused (filter only? xs)]
+(defn- focus [tests]
+  (let [focused (filter only? tests)]
     (if (seq focused)
       focused
-      xs)))
+      tests)))
 
 (defn run-tests
   "Run all tests"
