@@ -4,18 +4,18 @@
 
 (def input "ojvtpuvg")
 
-(deftest day5-part1
-  (testing "example"
-    (is (= "18f47a30"
-           (sut/part1 "abc"))))
-  (testing "my input"
-    (is (= "4543c154"
-           (sut/part1 input)))))
+(deftest ^:slow day5-part1-example
+  (is (= "18f47a30"
+         (sut/part1 "abc"))))
 
-(deftest day5-part2
-  (testing "example"
-    (is (= "05ace8e3"
-           (sut/part2 "abc"))))
-  (testing "my input"
-    (is (= "1050cbbd"
-           (sut/part2 input)))))
+(deftest ^:slow day5-part1-my-input
+  (is (= "4543c154"
+         (sut/part1 input))))
+
+(deftest ^:slow day5-part2-example
+  (is (= "05ace8e3"
+         (sut/part2 "abc"))))
+
+(deftest ^:slow day5-part2-my-input
+  (is (= "1050cbbd"
+         (sut/part2 input))))
