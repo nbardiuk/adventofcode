@@ -1,34 +1,28 @@
 (ns day01
-  (:require [clojure.string :as s]))
+  (:require [clojure.string :refer [split-lines]]))
 
-(defn- parse-ints [input]
+(defn- sorted-numbers [input]
   (->> input
-       s/split-lines
-       (map #(Integer/parseInt %))))
+       split-lines
+       (map #(Integer. %))
+       (sort <)))
 
-(defn- sum [xs]
-  (reduce + xs))
+(defn tails [xs]
+  (->> xs
+       (iterate rest)
+       (take-while seq)))
 
-(defn- product [xs]
-  (reduce * xs))
+(defn part1 [input]
+  (first
+   (for [[x & ys] (tails (sorted-numbers input))
+         y ys
+         :when (= 2020 (+ x y))]
+     (* x y))))
 
-(defn- combinations [n xs]
-  (loop [i 2
-         rs (map vector xs)]
-    (let [rs (for [x xs r rs] (conj r x))]
-      (if (< i n)
-        (recur (inc i) rs)
-        rs))))
-
-(defn find-first [p xs]
-  (->> xs (filter p) first))
-
-(defn- solution [n input]
-  (->> input
-       parse-ints
-       (combinations n)
-       (find-first #(= 2020 (sum %)))
-       product))
-
-(def part1 #(solution 2 %))
-(def part2 #(solution 3 %))
+(defn part2 [input]
+  (first
+   (for [[x & ys] (tails (sorted-numbers input))
+         [y & zs] (tails ys)
+         z zs
+         :when (= 2020 (+ x y z))]
+     (* x y z))))
