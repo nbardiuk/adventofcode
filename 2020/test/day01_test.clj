@@ -1,5 +1,6 @@
 (ns day01-test
-  (:require [clojure.test :refer [deftest is testing]]
+  (:require [clojure.java.io :as io]
+            [clojure.test :refer [deftest is testing]]
             [day01 :as sut]))
 
 (def example
@@ -10,7 +11,7 @@
 675
 1456")
 
-(def my-input (slurp "resources/input01.txt"))
+(def my-input (slurp (io/resource "input01.txt")))
 
 (deftest part1
   (testing "example"

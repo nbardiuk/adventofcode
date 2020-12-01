@@ -1,6 +1,6 @@
 .PHONY: repl
 repl:
-	clj -A:iced:dev --interactive
+	clj -A:test:iced --interactive
 
 .PHONY: test
 test:
