@@ -1,5 +1,5 @@
 (ns day01-test
-  (:require [clojure.test :refer [is deftest testing]]
+  (:require [clojure.test :refer [deftest is testing]]
             [day01 :as sut]))
 
 (def example
@@ -23,6 +23,3 @@
     (is (= 241861950 (sut/part2 example))))
   (testing "my input"
     (is (= 42140160 (sut/part2 my-input)))))
-
-(comment
-  (clojure.test/run-tests *ns*))

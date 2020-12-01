@@ -14,17 +14,20 @@
 
 (defn- combinations [n xs]
   (loop [i 2
-         result (map vector xs)]
-    (let [result (for [a xs r result] (conj r a))]
+         rs (map vector xs)]
+    (let [rs (for [x xs r rs] (conj r x))]
       (if (< i n)
-        (recur (inc i) result)
-        result))))
+        (recur (inc i) rs)
+        rs))))
+
+(defn find-first [p xs]
+  (->> xs (filter p) first))
 
 (defn- solution [n input]
   (->> input
        parse-ints
        (combinations n)
-       (some #(and (= 2020 (sum %)) %))
+       (find-first #(= 2020 (sum %)))
        product))
 
 (def part1 #(solution 2 %))
