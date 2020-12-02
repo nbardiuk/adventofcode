@@ -1,10 +1,13 @@
 (ns day02
   (:require [clojure.string :refer [split-lines]]))
 
-(defn- parse [line]
-  (let [[[_ a b c p]] (re-seq #"(\d+)-(\d+) (\w)\: (.*)" line)]
-    {:a (Integer/parseInt a)
-     :b (Integer/parseInt b)
+(defn- ->long [s]
+  (Long/parseLong s))
+
+(defn- ->password [line]
+  (let [[_ a b c p] (re-find #"(\d+)-(\d+) (\w)\: (.*)" line)]
+    {:a (->long a)
+     :b (->long b)
      :letter (first c)
      :password p}))
 
@@ -12,15 +15,14 @@
   (<= a (count (filter #{letter} password)) b))
 
 (defn- valid-position? [{:keys [a b letter password]}]
-  (let [at  #(get password (dec %))
+  (let [at #(get password (dec %))
         xor not=]
     (xor (= (at a) letter)
          (= (at b) letter))))
 
 (defn- count-passwords [valid? input]
-  (->> input
-       split-lines
-       (map parse)
+  (->> (split-lines input)
+       (map ->password)
        (filter valid?)
        count))
 
