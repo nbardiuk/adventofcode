@@ -12,10 +12,10 @@
   (<= a (count (filter #{letter} password)) b))
 
 (defn- valid-position? [{:keys [a b letter password]}]
-  (let [letters (hash-set (get password (dec a))
-                          (get password (dec b)))]
-    (and (contains? letters letter)
-         (= 2 (count letters)))))
+  (let [at  #(get password (dec %))
+        xor not=]
+    (xor (= (at a) letter)
+         (= (at b) letter))))
 
 (defn- count-passwords [valid? input]
   (->> input
