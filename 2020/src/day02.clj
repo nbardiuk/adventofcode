@@ -2,7 +2,7 @@
   (:require [clojure.string :refer [split-lines]]))
 
 (defn- parse [line]
-  (let [[[_ a b c p]] (re-seq #"(\d+)-(\d+) ([a-z])\: (.*)" line)]
+  (let [[[_ a b c p]] (re-seq #"(\d+)-(\d+) (\w)\: (.*)" line)]
     {:a (Integer/parseInt a)
      :b (Integer/parseInt b)
      :letter (first c)
