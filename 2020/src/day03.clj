@@ -2,8 +2,8 @@
   (:require [clojure.string :refer [split-lines]]))
 
 (defn- cell [grid x y]
-  (let [line (get grid y)]
-    (get line (rem x (count line)))))
+  (let [row (get grid y)]
+    (get row (rem x (count row)))))
 
 (defn- count-trees [grid [dx dy]]
   (let [xs (iterate #(+ dx %) 0)
