@@ -1,38 +1,39 @@
 (ns day07
   (:require [clojure.string :as str]))
 
-(defn- parse-bags [bags]
-  (->> (re-seq #"(\d+) (\w+ \w+)" bags)
-       (keep (comp #(update % 1 read-string) vec reverse rest))
-       (into {})))
-
-(defn- parse-graph [input]
+(defn- parse-parents [input]
   (->> (str/split-lines input)
        (map #(str/split % #" bags contain "))
-       (map #(update % 1 parse-bags))
+       (mapcat (fn [[parent bags]]
+                 (->> (re-seq #"\d+ (\w+ \w+)" bags)
+                      (keep (comp #(vector parent %) first rest)))))
+       (reduce (fn [m [parent child]] (update m child conj parent)) {})))
+
+(defn- parse-counts [input]
+  (->> (str/split-lines input)
+       (map #(str/split % #" bags contain "))
+       (map (fn [[parent bags]]
+              [parent (->> (re-seq #"(\d+) (\w+ \w+)" bags)
+                           (keep (comp vec reverse rest))
+                           (into {}))]))
        (into {})))
 
-(defn- transpose [graph]
-  (->> (for [[parent children] graph
-             [child _] children]
-         {child {parent 1}})
-       (reduce (partial merge-with merge) {})))
+(defn- count-parents [graph item]
+  (letfn [(all-parents [item]
+            (let [parents (get graph item)]
+              (concat parents (mapcat all-parents parents))))]
+    (->> item all-parents distinct count)))
 
-(defn- sum-counts [graph aggr item]
-  (loop [[[item n] & queue] [[item 1]]
-         counts {}]
-    (if-not item
-      (->> counts vals (apply +))
-      (let [children (map #(update % 1 * n) (get graph item))
-            queue (concat queue children)
-            counts (merge-with aggr counts (into {} children))]
-        (recur queue counts)))))
+(defn- sum-children [graph parent]
+  (->> (get graph parent)
+       (map (fn [[parent n]]
+              (* (read-string n) (+ 1 (sum-children graph parent)))))
+       (apply +)))
 
 (defn part1 [input]
-  (-> (parse-graph input)
-      transpose
-      (sum-counts (constantly 1) "shiny gold")))
+  (-> (parse-parents input)
+      (count-parents "shiny gold")))
 
 (defn part2 [input]
-  (-> (parse-graph input)
-      (sum-counts + "shiny gold")))
+  (-> (parse-counts input)
+      (sum-children "shiny gold")))
