@@ -1,5 +1,6 @@
 (ns day07
-  (:require [clojure.string :as str]))
+  (:require [clojure.string :as str]
+            [clojure.set :as set]))
 
 (defn- parse-bags [line]
   (->> (for [bag (-> line
@@ -16,15 +17,21 @@
          [parent (parse-bags bags)])
        (into {})))
 
-(defn- parents [graph item]
-  (->> (for [parent (->> graph
-                         (filter #(-> % second (contains? item)))
-                         (map first))]
-         (cons parent (parents graph parent)))
-       (apply concat)))
+(defn- transpose [graph]
+  (->> (for [[parent children] graph
+             [child _] children]
+         {child [parent]})
+       (reduce (partial merge-with concat) {})))
 
 (defn- count-parents [graph item]
-  (->> item (parents graph) distinct count))
+  (let [graph (transpose graph)]
+    (loop [[item & queue] [item]
+           seen #{}]
+      (if-not item
+        (count seen)
+        (let [parents (filter (comp not seen) (get graph item))]
+          (recur (concat queue parents)
+                 (set/union seen (set parents))))))))
 
 (defn- count-children [graph parent]
   (->> (for [[child n] (get graph parent)]
