@@ -1,19 +1,15 @@
 (ns day07
   (:require [clojure.string :as str]))
 
-(defn- parse-bags [line]
-  (->> (for [bag (-> line
-                     (str/replace #" bags?\.?|no other" "")
-                     (str/split #", "))
-             :let [[quantity bag] (str/split bag #" " 2)]
-             :when (seq quantity)]
-         [bag (read-string quantity)])
+(defn- parse-bags [bags]
+  (->> (re-seq #"(\d+) (\w+ \w+)" bags)
+       (keep (comp #(update % 1 read-string) vec reverse rest))
        (into {})))
 
 (defn- parse-graph [input]
-  (->> (for [line (str/split-lines input)
-             :let [[parent bags] (str/split line #" bags contain ")]]
-         [parent (parse-bags bags)])
+  (->> (str/split-lines input)
+       (map #(str/split % #" bags contain "))
+       (map #(update % 1 parse-bags))
        (into {})))
 
 (defn- transpose [graph]
