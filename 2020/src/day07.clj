@@ -1,6 +1,5 @@
 (ns day07
-  (:require [clojure.string :as str]
-            [clojure.set :as set]))
+  (:require [clojure.string :as str]))
 
 (defn- parse-bags [line]
   (->> (for [bag (-> line
@@ -20,28 +19,24 @@
 (defn- transpose [graph]
   (->> (for [[parent children] graph
              [child _] children]
-         {child [parent]})
-       (reduce (partial merge-with concat) {})))
+         {child {parent 1}})
+       (reduce (partial merge-with merge) {})))
 
-(defn- count-parents [graph item]
-  (let [graph (transpose graph)]
-    (loop [[item & queue] [item]
-           seen #{}]
-      (if-not item
-        (count seen)
-        (let [parents (filter (comp not seen) (get graph item))]
-          (recur (concat queue parents)
-                 (set/union seen (set parents))))))))
-
-(defn- count-children [graph parent]
-  (->> (for [[child n] (get graph parent)]
-         (* n (+ 1 (count-children graph child))))
-       (reduce +)))
+(defn- sum-counts [graph aggr item]
+  (loop [[[item n] & queue] [[item 1]]
+         counts {}]
+    (if-not item
+      (->> counts vals (apply +))
+      (let [children (map #(update % 1 * n) (get graph item))
+            queue (concat queue children)
+            counts (merge-with aggr counts (into {} children))]
+        (recur queue counts)))))
 
 (defn part1 [input]
   (-> (parse-graph input)
-      (count-parents "shiny gold")))
+      transpose
+      (sum-counts (constantly 1) "shiny gold")))
 
 (defn part2 [input]
   (-> (parse-graph input)
-      (count-children "shiny gold")))
+      (sum-counts + "shiny gold")))
