@@ -7,16 +7,11 @@
        (mapv (fn [[op arg]]
                [(keyword op) (read-string arg)]))))
 
-(defn flip [[op arg :as instruction]]
-  (case op
-    :acc instruction
-    :jmp [:nop arg]
-    :nop [:jmp arg]))
-
 (defn flip-seq [program]
-  (->> (range (count program))
-       (map #(update program % flip))
-       distinct))
+  (letfn [(flip [i [op]]
+            (when-let [fop ({:nop :jmp :jmp :nop} op)]
+              (assoc-in program [i 0] fop)))]
+    (keep-indexed flip program)))
 
 (defn execute [program]
   (loop [accumulator 0
