@@ -7,48 +7,38 @@
        (map #(update % 1 read-string))
        vec))
 
-(defn loops [cmds]
-  (loop [acc 0
-         i 0
-         seen #{}]
-    (if (seen i)
-      acc
-      (let [[op v] (get cmds i)]
-        (case op
-          "acc" (recur (+ acc v) (inc i) (conj seen i))
-          "jmp" (recur acc (+ i v) (conj seen i))
-          "nop" (recur acc (inc i) (conj seen i)))))))
-
-(defn part1 [input]
-  (->> (read-instructions input)
-       loops))
-
-(defn flip [[op v :as cmd]]
+(defn flip [[op arg :as instruction]]
   (case op
-    "acc" cmd
-    "jmp" ["nop" v]
-    "nop" ["jmp" v]))
+    "acc" instruction
+    "jmp" ["nop" arg]
+    "nop" ["jmp" arg]))
 
-(defn all-flips [cmds]
+(defn flip-seq [instructions]
   (->> (range)
-       (map #(update cmds % flip))
-       (take (count cmds))
+       (map #(update instructions % flip))
+       (take (count instructions))
        distinct))
 
-(defn halts [cmds]
+(defn execute [instructions]
   (loop [acc 0
          i 0
          seen #{}]
     (cond
-      (seen i) nil
-      (< i (count cmds)) (let [[op v] (get cmds i)]
-                           (case op
-                             "acc" (recur (+ acc v) (inc i) (conj seen i))
-                             "jmp" (recur acc (+ i v) (conj seen i))
-                             "nop" (recur acc (inc i) (conj seen i))))
-      :else acc)))
+      (seen i) {:loops acc}
+      (<= (count instructions) i) {:halts acc}
+      :else (let [[op arg] (get instructions i)]
+              (case op
+                "acc" (recur (+ arg acc) (inc i) (conj seen i))
+                "jmp" (recur acc (+ arg i) (conj seen i))
+                "nop" (recur acc (inc i) (conj seen i)))))))
+
+(defn part1 [input]
+  (->> (read-instructions input)
+       execute
+       :loops))
 
 (defn part2 [input]
   (->> (read-instructions input)
-       all-flips
-       (some halts)))
+       flip-seq
+       (map execute)
+       (some :halts)))
