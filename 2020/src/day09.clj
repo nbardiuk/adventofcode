@@ -5,7 +5,7 @@
   (->> (split-lines input)
        (map read-string)))
 
-(defn sum2-last [xs]
+(defn invalid-checksum [xs]
   (let [sum (last xs)
         xs (set (drop-last xs))]
     (when (not-any? #(xs (- sum %)) xs)
@@ -14,7 +14,7 @@
 (defn invalid-number [preamble numbers]
   (->> numbers
        (partition (inc preamble) 1)
-       (some sum2-last)))
+       (some invalid-checksum)))
 
 (defn tails [xs]
   (->> (iterate rest xs)
