@@ -20,10 +20,10 @@
   (->> (iterate rest xs)
        (take-while seq)))
 
-(defn take-with-sum [sum xs]
-  (let [sums (take-while #(<= % sum) (reductions + xs))
-        len (if (= (last sums) sum) (count sums) 0)]
-    (take len xs)))
+(defn with-sum [sum xs]
+  (let [sums (take-while #(<= % sum) (reductions + xs))]
+    (when (= (last sums) sum)
+      (take (count sums) xs))))
 
 (defn part1 [input preamble]
   (->> (read-numbers input)
@@ -33,7 +33,6 @@
   (let [numbers (read-numbers input)
         invalid (invalid-number preamble numbers)]
     (->> (tails numbers)
-         (map #(take-with-sum invalid %))
-         (apply max-key count)
+         (some #(with-sum invalid %))
          (apply (juxt min max))
          (apply +))))
