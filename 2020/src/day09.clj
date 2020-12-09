@@ -5,26 +5,25 @@
   (->> (split-lines input)
        (map read-string)))
 
-(defn has-sum [xs]
-  (let [x (last xs)
+(defn sum2-last [xs]
+  (let [sum (last xs)
         xs (set (drop-last xs))]
-    (when (not-any? #(xs (- x %)) xs)
-      x)))
+    (when (not-any? #(xs (- sum %)) xs)
+      sum)))
 
 (defn invalid-number [preamble numbers]
   (->> numbers
        (partition (inc preamble) 1)
-       (some has-sum)))
+       (some sum2-last)))
 
 (defn tails [xs]
-  (->> xs
-       (iterate rest)
+  (->> (iterate rest xs)
        (take-while seq)))
 
-(defn with-sum [sum xs]
-  (let [sums (take-while #(<= % sum) (reductions + xs))]
-    (when (= (last sums) sum)
-      (take (count sums) xs))))
+(defn take-with-sum [sum xs]
+  (let [sums (take-while #(<= % sum) (reductions + xs))
+        len (if (= (last sums) sum) (count sums) 0)]
+    (take len xs)))
 
 (defn part1 [input preamble]
   (->> (read-numbers input)
@@ -32,9 +31,9 @@
 
 (defn part2 [input preamble]
   (let [numbers (read-numbers input)
-        sum (invalid-number preamble numbers)]
+        invalid (invalid-number preamble numbers)]
     (->> (tails numbers)
-         (keep #(with-sum sum %))
+         (map #(take-with-sum invalid %))
          (apply max-key count)
          (apply (juxt min max))
          (apply +))))
