@@ -10,33 +10,33 @@
      :floor? (set (get positions \.))
      :seats (get positions \L)}))
 
-(defn- neighbour [_floor? [x y] [dx dy]]
+(defn- neighbor [_floor? [x y] [dx dy]]
   [(+ x dx) (+ y dy)])
 
 (defn- first-seen [floor? p [dx dy]]
   (->> (iterate inc 1)
-       (map #(neighbour floor? p [(* % dx) (* % dy)]))
+       (map #(neighbor floor? p [(* % dx) (* % dy)]))
        (drop-while floor?)
        first))
 
-(defn- precompute-neighbours [seat-lookup {:keys [seats floor?] :as m}]
+(defn- precompute-neighbors [seat-lookup {:keys [seats floor?] :as m}]
   (let [directions [[-1 -1] [-1 0] [-1 1]
                     [0  -1]        [0  1]
                     [1  -1] [1  0] [1  1]]]
     (->> seats
          (map #(vector % (map (partial seat-lookup floor? %) directions)))
          (into {})
-         (assoc m :neighbours))))
+         (assoc m :neighbors))))
 
-(defn- steps [tolerance {:keys [occupied? seats neighbours]}]
+(defn- steps [tolerance {:keys [occupied? seats neighbors]}]
   (->> occupied?
        (iterate
         (fn [occupied?]
           (->> seats
                (filter
                 #(if (occupied? %)
-                   (not= tolerance (->> (neighbours %) (filter occupied?) (bounded-count tolerance)))
-                   (not-any? occupied? (neighbours %))))
+                   (not= tolerance (->> (neighbors %) (filter occupied?) (bounded-count tolerance)))
+                   (not-any? occupied? (neighbors %))))
                set)))))
 
 (defn- first-repeat [xs]
@@ -46,13 +46,13 @@
 
 (defn- stable-occupation [input seat-lookup tolerance]
   (->> (parse-map input)
-       (precompute-neighbours seat-lookup)
+       (precompute-neighbors seat-lookup)
        (steps tolerance)
        first-repeat
        count))
 
 (defn part1 [input]
-  (stable-occupation input neighbour 4))
+  (stable-occupation input neighbor 4))
 
 (defn part2 [input]
   (stable-occupation input first-seen 5))
