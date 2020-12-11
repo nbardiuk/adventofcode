@@ -2,60 +2,54 @@
   (:require [clojure.string :refer [split-lines]]))
 
 (defn- parse-map [input]
-  (into {} (let [lines (split-lines input)]
-             (for [y (range (count lines))
-                   x (range (count (first lines)))]
-               [[x y] (get-in lines [y x])]))))
+  (let [lines (split-lines input)
+        [width height] [(count (first lines)) (count lines)]
+        positions (group-by (fn [[x y]] (get-in lines [y x]))
+                            (for [x (range width) y (range height)] [x y]))]
+    {:occupied? #{}
+     :floor? (set (get positions \.))
+     :seats (get positions \L)}))
 
-(def directions [[-1 -1]
-                 [-1 1]
-                 [-1 0]
-                 [0 -1]
-                 [0 1]
-                 [1 0]
-                 [1 1]
-                 [1 -1]])
+(defn- neighbour [_floor? [x y] [dx dy]]
+  [(+ x dx) (+ y dy)])
 
-(defn- neighbour [m [x y] [dx dy]]
-  (get m [(+ x dx) (+ y dy)]))
-
-(defn- first-seen [m pos [dx dy]]
+(defn- first-seen [floor? p [dx dy]]
   (->> (iterate inc 1)
-       (map #(vector (* % dx) (* % dy)))
-       (map #(neighbour m pos %))
-       (drop-while #{\.})
+       (map #(neighbour floor? p [(* % dx) (* % dy)]))
+       (drop-while floor?)
        first))
 
-(defn- count-occupied [seat-lookup m pos]
-  (count (for [direction directions
-               :when (= \# (seat-lookup m pos direction))]
-           1)))
+(defn- precompute-neighbours [seat-lookup {:keys [seats floor?] :as m}]
+  (let [directions [[-1 -1] [-1 0] [-1 1]
+                    [0  -1]        [0  1]
+                    [1  -1] [1  0] [1  1]]]
+    (->> seats
+         (map #(vector % (map (partial seat-lookup floor? %) directions)))
+         (into {})
+         (assoc m :neighbours))))
 
-(defn- step [seat-lookup tolerance m]
-  (reduce
-   (fn [result [pos v]]
-     (cond
-       (and (= \L v) (= 0 (count-occupied seat-lookup m pos))) (assoc result pos \#)
-       (and (= \# v) (<= tolerance (count-occupied seat-lookup m pos))) (assoc result pos \L)
-       :else result))
-   m
-   m))
+(defn- steps [tolerance {:keys [occupied? seats neighbours]}]
+  (->> occupied?
+       (iterate
+        (fn [occupied?]
+          (->> seats
+               (filter
+                #(if (occupied? %)
+                   (not= tolerance (->> (neighbours %) (filter occupied?) (bounded-count tolerance)))
+                   (not-any? occupied? (neighbours %))))
+               set)))))
 
 (defn- first-repeat [xs]
   (->> (partition 2 1 xs)
        (drop-while #(apply not= %))
        ffirst))
 
-(defn- occupation [m]
-  (->> (vals m)
-       (filter #{\#})
-       count))
-
 (defn- stable-occupation [input seat-lookup tolerance]
   (->> (parse-map input)
-       (iterate (partial step seat-lookup tolerance))
+       (precompute-neighbours seat-lookup)
+       (steps tolerance)
        first-repeat
-       occupation))
+       count))
 
 (defn part1 [input]
   (stable-occupation input neighbour 4))
