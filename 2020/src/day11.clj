@@ -26,17 +26,17 @@
        (drop-while #{\.})
        first))
 
-(defn- count-occupied [seet-lookup m pos]
+(defn- count-occupied [seat-lookup m pos]
   (count (for [direction directions
-               :when (= \# (seet-lookup m pos direction))]
+               :when (= \# (seat-lookup m pos direction))]
            1)))
 
-(defn- step [seet-lookup tolerance m]
+(defn- step [seat-lookup tolerance m]
   (reduce
    (fn [result [pos v]]
      (cond
-       (and (= \L v) (= 0 (count-occupied seet-lookup m pos))) (assoc result pos \#)
-       (and (= \# v) (<= tolerance (count-occupied seet-lookup m pos))) (assoc result pos \L)
+       (and (= \L v) (= 0 (count-occupied seat-lookup m pos))) (assoc result pos \#)
+       (and (= \# v) (<= tolerance (count-occupied seat-lookup m pos))) (assoc result pos \L)
        :else result))
    m
    m))
@@ -51,9 +51,9 @@
        (filter #{\#})
        count))
 
-(defn- stable-occupation [input seet-lookup tolerance]
+(defn- stable-occupation [input seat-lookup tolerance]
   (->> (parse-map input)
-       (iterate (partial step seet-lookup tolerance))
+       (iterate (partial step seat-lookup tolerance))
        first-repeat
        occupation))
 
