@@ -1,9 +1,7 @@
-(ns day12
-  (:require [clojure.string :as str]))
+(ns day12)
 
 (defn read-commands [input]
-  (for [line (str/split-lines input)
-        :let [[_ cmd n] (re-find #"(\w)(\d+)" line)]]
+  (for [[_ cmd n] (re-seq #"(\w)(\d+)" input)]
     [cmd (read-string n)]))
 
 (defn rotate [[x y] dg]
