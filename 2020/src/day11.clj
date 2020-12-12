@@ -22,9 +22,11 @@
 (defn- precompute-neighbors [seat-lookup {:keys [seats floor?] :as m}]
   (let [directions [[-1 -1] [-1 0] [-1 1]
                     [0  -1]        [0  1]
-                    [1  -1] [1  0] [1  1]]]
+                    [1  -1] [1  0] [1  1]]
+        seat? (set seats)
+        neighbors #(keep (comp seat? (partial seat-lookup floor? %)) directions)]
     (->> seats
-         (map #(vector % (map (partial seat-lookup floor? %) directions)))
+         (map #(vector % (neighbors %)))
          (into {})
          (assoc m :neighbors))))
 
