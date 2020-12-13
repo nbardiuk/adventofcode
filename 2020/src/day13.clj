@@ -1,6 +1,5 @@
 (ns day13
-  (:require [clojure.string :as str]
-            [clojure.math.numeric-tower :as math]))
+  (:require [clojure.string :as str]))
 
 (defn- read-schedule [input]
   (let [[time busses] (str/split-lines input)
@@ -34,7 +33,7 @@
                 time (->> (iterate #(+ cycle %) time)
                           (filter #(= shift (wait-time % bus-cycle)))
                           first)
-                cycle (math/lcm cycle bus-cycle)]
+                cycle (* cycle bus-cycle)]
             [cycle time])))
 
        second))
