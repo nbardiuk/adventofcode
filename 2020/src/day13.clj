@@ -29,12 +29,12 @@
   (->> (read-busses input)
 
        (reduce
-        (fn [[step result] [bus-cycle i]]
+        (fn [[cycle time] [bus-cycle i]]
           (let [shift (mod i bus-cycle)
-                result (->> (iterate #(+ step %) result)
-                            (filter (fn [time] (= shift (wait-time time bus-cycle))))
-                            first)
-                step (math/lcm step bus-cycle)]
-            [step result])))
+                time (->> (iterate #(+ cycle %) time)
+                          (filter #(= shift (wait-time % bus-cycle)))
+                          first)
+                cycle (math/lcm cycle bus-cycle)]
+            [cycle time])))
 
        second))
