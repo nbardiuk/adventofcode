@@ -4,9 +4,9 @@
 (defn- read-busses [input]
   (let [[_ busses] (str/split-lines input)]
     (->> (str/split busses #",")
-         (keep-indexed (fn [i bus-cycle]
+         (keep-indexed (fn [bus-delay bus-cycle]
                          (when-not (= "x" bus-cycle)
-                           [(read-string bus-cycle) i]))))))
+                           [(read-string bus-cycle) bus-delay]))))))
 
 (defn- wait-time [time bus-cycle]
   (mod (- bus-cycle time) bus-cycle))
@@ -22,12 +22,11 @@
   (->> (read-busses input)
 
        (reduce
-        (fn [[cycle time] [bus-cycle i]]
-          (let [shift (mod i bus-cycle)
-                time (->> (iterate #(+ cycle %) time)
-                          (filter #(= shift (wait-time % bus-cycle)))
-                          first)
+        (fn [[cycle delay] [bus-cycle bus-delay]]
+          (let [delay (->> (iterate #(+ cycle %) delay)
+                           (filter #(zero? (wait-time (+ % bus-delay) bus-cycle)))
+                           first)
                 cycle (* cycle bus-cycle)]
-            [cycle time])))
+            [cycle delay])))
 
        second))
