@@ -30,27 +30,28 @@
             [i (if (bit-test variant n) 1 0)])))))
 
 (defn masks [mask]
-  (let [floats (filter (comp (partial = :floating) second) mask)
-        ones (filter (comp (partial = 1) second) mask)]
+  (let [floats (filter (comp #{:floating} second) mask)
+        ones (filter (comp #{1} second) mask)]
     (for [fluc (fluctuations floats)]
       (concat ones fluc))))
 
-(defn- memory-value-decoder [memory mask [i v]]
-  (assoc memory i (masked mask v)))
+(defn- memory-value-decoder [memory mask [address value]]
+  (assoc memory address (masked mask value)))
 
-(defn- memory-address-decoder [memory mask [i v]]
+(defn- memory-address-decoder [memory mask [address value]]
   (->> (masks mask)
-       (reduce (fn [memory mask]
-                 (assoc memory (masked mask i) v))
-               memory)))
+       (reduce
+        (fn [memory mask]
+          (assoc memory (masked mask address) value))
+        memory)))
 
 (defn- init-memory [decoder instructions]
   (->> instructions
        (reduce
-        (fn [{:keys [mask] :as result} [op v]]
+        (fn [{:keys [mask] :as result} [op arg]]
           (case op
-            :mask (assoc result :mask v)
-            :mem (update result :memory decoder mask v)))
+            :mask (assoc result :mask arg)
+            :mem (update result :memory decoder mask arg)))
         {:memory {} :mask []})))
 
 (defn solution [decoder input]
