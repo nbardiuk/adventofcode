@@ -12,15 +12,14 @@
       (let [[_ index] (re-find #"(\d+)" k)]
         [:mem [(read-string index) (read-string v)]]))))
 
-(defn masked [mask value]
-  (->> mask
-       (reduce
-        (fn [value [i v]]
-          (case v
-            1 (bit-set value i)
-            0 (bit-clear value i)
-            value))
-        value)))
+(defn- masked [mask value]
+  (reduce
+   (fn [value [i v]]
+     (case v
+       1 (bit-set value i)
+       0 (bit-clear value i)
+       value))
+   value mask))
 
 (defn fluctuations [floats]
   (for [variant (range (Math/pow 2 (count floats)))]
@@ -29,39 +28,40 @@
           (fn [n [i _]]
             [i (if (bit-test variant n) 1 0)])))))
 
-(defn masks [mask]
+(defn- floating-masks [mask]
   (let [floats (filter (comp #{:floating} second) mask)
         ones (filter (comp #{1} second) mask)]
     (for [fluc (fluctuations floats)]
       (concat ones fluc))))
 
-(defn- memory-value-decoder [memory mask [address value]]
-  (assoc memory address (masked mask value)))
+(defn- memory-value-decoder [memory masks [address value]]
+  (reduce
+   (fn [memory mask]
+     (assoc memory address (masked mask value)))
+   memory masks))
 
-(defn- memory-address-decoder [memory mask [address value]]
-  (->> (masks mask)
-       (reduce
-        (fn [memory mask]
-          (assoc memory (masked mask address) value))
-        memory)))
+(defn- memory-address-decoder [memory masks [address value]]
+  (reduce
+   (fn [memory mask]
+     (assoc memory (masked mask address) value))
+   memory masks))
 
-(defn- init-memory [decoder instructions]
-  (->> instructions
-       (reduce
-        (fn [{:keys [mask] :as result} [op arg]]
-          (case op
-            :mask (assoc result :mask arg)
-            :mem (update result :memory decoder mask arg)))
-        {:memory {} :mask []})))
+(defn- init-memory [decoder mask-fun instructions]
+  (reduce
+   (fn [{:keys [masks] :as result} [op arg]]
+     (case op
+       :mask (assoc result :masks (mask-fun arg))
+       :mem (update result :memory decoder masks arg)))
+   {:memory {} :masks []} instructions))
 
-(defn solution [decoder input]
+(defn- solution [decoder mask-fun input]
   (->> (read-program input)
-       (init-memory decoder)
+       (init-memory decoder mask-fun)
        :memory vals
-       (apply +)))
+       (reduce +)))
 
 (defn part1 [input]
-  (solution memory-value-decoder input))
+  (solution memory-value-decoder vector input))
 
 (defn part2 [input]
-  (solution memory-address-decoder input))
+  (solution memory-address-decoder floating-masks input))
