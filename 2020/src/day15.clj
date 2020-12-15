@@ -1,5 +1,4 @@
-(ns day15
-  (:import [java.util HashMap]))
+(ns day15)
 
 (defn read-numbers [input]
   (->> (re-seq #"\d+" input)
@@ -7,13 +6,16 @@
 
 (defn solution [n input]
   (let [xs (read-numbers input)
-        seen (->> xs (map-indexed (fn [i n] [n i])) (into {}) (HashMap.))]
+        seen (int-array n Integer/MAX_VALUE)]
+    (->> xs (map-indexed #(aset seen %2 ^int %1)) dorun)
     (loop [item 0
-           i (count xs)]
-      (cond
-        (= i (dec n)) item
-        :else (recur (- i (or (.put seen item i) i))
-                     (inc i))))))
+           index (count xs)]
+      (if (= (inc index) n)
+        item
+        (let [last-seen (min index (aget seen item))]
+          (aset seen item index)
+          (recur (- index last-seen)
+                 (inc index)))))))
 
 (defn part1 [input] (solution 2020 input))
 (defn part2 [input] (solution 30000000 input))
