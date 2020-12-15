@@ -1,26 +1,24 @@
-(ns day15)
+(ns day15
+  (:import [java.util HashMap]))
 
 (defn read-numbers [input]
   (->> (re-seq #"\d+" input)
        (map read-string)))
 
 (defn init-state [xs]
-  [(last xs)
+  [0
    (count xs)
-   (->> xs
-        (map-indexed (fn [i n] [n [i i]]))
-        (into {}))])
+   (->> xs (map-indexed (fn [i n] [n i])) (into {}) (HashMap.))])
 
-(defn step [[last index seen]]
-  (let [[a b] (get seen last [0 0])
-        next (- a b)
-        seen (update seen next (fn [[x]] [index (or x index)]))]
-    [next (inc index) seen]))
+(defn step [[item i ^HashMap seen]]
+  (let [j (.put seen item i)
+        next (- i (or j i))]
+    [next (inc i) seen]))
 
 (defn solution [n input]
-  (let [[_ index :as state] (->> (read-numbers input) init-state)]
+  (let [[_ i :as state] (->> (read-numbers input) init-state)]
     (-> (iterate step state)
-        (nth (- n index))
+        (nth (dec (- n i)))
         first)))
 
 (defn part1 [input] (solution 2020 input))
