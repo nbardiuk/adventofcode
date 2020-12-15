@@ -5,21 +5,15 @@
   (->> (re-seq #"\d+" input)
        (map read-string)))
 
-(defn init-state [xs]
-  [0
-   (count xs)
-   (->> xs (map-indexed (fn [i n] [n i])) (into {}) (HashMap.))])
-
-(defn step [[item i ^HashMap seen]]
-  (let [j (.put seen item i)
-        next (- i (or j i))]
-    [next (inc i) seen]))
-
 (defn solution [n input]
-  (let [[_ i :as state] (->> (read-numbers input) init-state)]
-    (-> (iterate step state)
-        (nth (dec (- n i)))
-        first)))
+  (let [xs (read-numbers input)
+        seen (->> xs (map-indexed (fn [i n] [n i])) (into {}) (HashMap.))]
+    (loop [item 0
+           i (count xs)]
+      (cond
+        (= i (dec n)) item
+        :else (recur (- i (or (.put seen item i) i))
+                     (inc i))))))
 
 (defn part1 [input] (solution 2020 input))
 (defn part2 [input] (solution 30000000 input))
