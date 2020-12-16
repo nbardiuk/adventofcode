@@ -16,16 +16,19 @@
                   next
                   (map #(read-numbers %)))}))
 
-(defn- matches-rule [[_ [a b c d]] value]
+(defn- matches-rule [[a b c d] value]
   (or (<= a value b) (<= c value d)))
 
 (defn- matches-rules [rules value]
-  (some #(matches-rule % value) rules))
+  (some #(matches-rule % value) (vals rules)))
 
 (defn- keep-matching-rules [rules value]
-  (->> rules
-       (filter #(matches-rule % value))
-       (into {})))
+  (reduce
+   (fn [rules [field ranges]]
+     (if (matches-rule ranges value)
+       rules
+       (dissoc rules field)))
+   rules rules))
 
 (defn- valid-tickets [rules tickets]
   (filter #(every? (partial matches-rules rules) %) tickets))
