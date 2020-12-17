@@ -1,12 +1,10 @@
 (ns day17
   (:require [clojure.string :as str]))
 
-(defn read-alive [origin input]
-  (let [lines (str/split-lines input)
-        size (count lines)]
-    (for [x (range size)
-          y (range size)
-          :when (= \# (get-in lines [y x]))]
+(defn read-active [origin input]
+  (let [lines (str/split-lines input)]
+    (for [y (range (count lines)) :let [line (get lines y)]
+          x (range (count line)) :when (= \# (get line x))]
       (-> origin (assoc 0 x) (assoc 1 y)))))
 
 (defn directions [dimentions]
@@ -24,7 +22,7 @@
 
 (defn step [directions active]
   (set
-   (for [[cube n] (frequencies (mapcat (partial neighbours directions) active))
+   (for [[cube n] (frequencies (mapcat #(neighbours directions %) active))
          :when (if (active cube)
                  (#{2 3} n)
                  (#{3} n))]
@@ -33,7 +31,7 @@
 (defn solution [dimentions input]
   (let [origin (vec (repeat dimentions 0))
         directions (directions dimentions)
-        active (->> input (read-alive origin) set)]
+        active (->> input (read-active origin) set)]
     (-> (iterate #(step directions %) active)
         (nth 6)
         count)))
