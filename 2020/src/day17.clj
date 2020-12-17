@@ -24,8 +24,7 @@
 
 (defn step [directions active]
   (set
-   (for [cube (distinct (mapcat (partial neighbours directions) active))
-         :let [n (->> cube (neighbours directions) (filter active) count)]
+   (for [[cube n] (frequencies (mapcat (partial neighbours directions) active))
          :when (if (active cube)
                  (#{2 3} n)
                  (#{3} n))]
