@@ -14,8 +14,8 @@
 (defn eval1 [tokens]
   (letfn [(single [[token & tokens]]
             (case token
-              :open (let [[expr tokens] (binary tokens)]
-                      [expr (rest tokens)])
+              :open (let [[a [_close & tokens]] (binary tokens)]
+                      [a tokens])
               [token tokens]))
 
           (binary [tokens]
@@ -31,8 +31,8 @@
 (defn eval2 [tokens]
   (letfn [(single [[token & tokens]]
             (case token
-              :open (let [[expr tokens] (product tokens)]
-                      [expr (rest tokens)])
+              :open (let [[a [_close & tokens]] (product tokens)]
+                      [a tokens])
               [token tokens]))
 
           (product [tokens]

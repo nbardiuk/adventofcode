@@ -14,7 +14,7 @@
     (is (= 12240 (sut/part1 "5 * 9 * (7 * 3 * 3 + 9 * 3 + (8 + 6 * 4))")))
     (is (= 13632 (sut/part1 "((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2"))))
   (testing "my input"
-    (is (= 3885386961962 (time (sut/part1 my-input))))))
+    (is (= 3885386961962 (sut/part1 my-input)))))
 
 (deftest part2
   (testing "examples"
@@ -25,4 +25,4 @@
     (is (= 669060 (sut/part2 "5 * 9 * (7 * 3 * 3 + 9 * 3 + (8 + 6 * 4))")))
     (is (= 23340 (sut/part2 "((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2"))))
   (testing "my input"
-    (is (= 112899558798666 (time (sut/part2 my-input))))))
+    (is (= 112899558798666 (sut/part2 my-input)))))
