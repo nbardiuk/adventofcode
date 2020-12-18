@@ -11,6 +11,9 @@
                ")" :close
                (read-string %)))))
 
+;; expr    : binary
+;; binary  : binary ['+'|'*' single]
+;; single  : number | '(' binary ')'
 (defn eval1 [tokens]
   (letfn [(single [[token & tokens]]
             (case token
@@ -28,6 +31,10 @@
 
     (first (binary tokens))))
 
+;; expr    : product
+;; product : sum ['*' product]
+;; sum     : single ['+' sum]
+;; single  : number | '(' product ')'
 (defn eval2 [tokens]
   (letfn [(single [[token & tokens]]
             (case token
