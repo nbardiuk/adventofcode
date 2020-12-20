@@ -1,23 +1,26 @@
 (ns day20
   (:require [clojure.string :as str]))
 
-(defn tiles [input]
+(defn read-tiles [input]
   (for [tile (str/split input #"\R\R")
         :let [[title & pixels] (str/split-lines tile)
               id (read-string (first (re-seq #"\d+" title)))]]
     {:id id
-     :pixels pixels}))
+     :pixels (map vec pixels)}))
 
 (defn vflip [pixels]
   (reverse pixels))
 
-(defn rot-cw [pixels]
-  (for [i (range (count pixels))]
-    (str/join (reverse (map #(get % i) pixels)))))
+(def rot-cw
+  (memoize
+   (fn [pixels]
+     (vec
+      (for [i (range (count pixels))]
+        (->> pixels (map #(nth % i)) reverse vec))))))
 
-(defn all-positions [pixels]
-  (concat (take 4 (iterate rot-cw pixels))
-          (take 4 (iterate rot-cw (vflip pixels)))))
+(defn all-orientations [pixels]
+  (->> [pixels (vflip pixels)]
+       (mapcat #(take 4 (iterate rot-cw %)))))
 
 (defn edge [side pixels]
   (case side
@@ -32,63 +35,63 @@
    :left [(- x 1) y]
    :right [(+ x 1) y]})
 
-(def opposite-side
+(def opposite
   {:top :bottom
    :bottom :top
    :left :right
    :right :left})
 
-(defn open-edges [grid]
-  (for [[pos :as cell] grid
+(defn open-cells [grid]
+  (for [[pos cell] grid
         [dir np] (neighbours pos)
         :when (not (grid np))]
-    [dir cell]))
+    [np (opposite dir) (edge dir (:pixels cell))]))
 
 (defn try-tile [grid tile]
   (if (empty? grid)
     (assoc grid [0 0] tile)
     (first
-     (for [[dir [cell-pos cell-tile]] (open-edges grid)
-           :let [open-edge (edge dir (:pixels cell-tile))]
-           pixels (all-positions (:pixels tile))
-           :let [tile-edge (edge (opposite-side dir) pixels)]
-           :when (= open-edge tile-edge)]
-       (assoc grid
-              ((neighbours cell-pos) dir)
-              (assoc tile :pixels pixels))))))
+     (for [[pos dir open-edge] (open-cells grid)
+           pixels (all-orientations (:pixels tile))
+           :when (= open-edge (edge dir pixels))]
+       (assoc grid pos (assoc tile :pixels pixels))))))
 
 (defn assemble [tiles]
-  (loop [[tile & queue] tiles
+  (loop [queue (vec tiles)
          grid {}]
-    (if (nil? tile)
+    (if (empty? queue)
       grid
-      (if-let [new-grid (try-tile grid tile)]
-        (recur queue new-grid)
-        (recur (conj (vec queue) tile) grid)))))
+      (let [tile (first queue)
+            queue (subvec queue 1)
+            new-grid (try-tile grid tile)]
+        (if new-grid
+          (recur queue new-grid)
+          (recur (conj queue tile) grid))))))
 
 (defn- glue-image [grid]
   (let [side (int (Math/sqrt (count grid)))
         without-borders (fn [pixels]
                           (->> pixels
                                rest butlast
-                               (map #(subs % 1 (dec (count %))))))]
+                               (map #(->> % rest butlast vec))))]
     (->> grid (sort-by first)
          (map (comp without-borders :pixels second))
          (partition side)
          (map (partial reduce concat))
-         (reduce (partial map str)))))
+         (reduce (partial mapv (comp vec concat))))))
 
 (def monster
-  {:width 20
-   :height 3
-   :pixels [[#_.                            18]
-            [#_. 0    5 6     11 12      17 18 19]
-            [#_.  1  4   7  10     13  16]]})
+  (let [pic ["                  # "
+             "#    ##    ##    ###"
+             " #  #  #  #  #  #   "]]
+    {:width (count (first pic))
+     :height (count pic)
+     :pixels (mapv (partial keep-indexed #(when (= \# %2) %1)) pic)}))
 
 (defn- has-monster [image [x y]]
   (->> (for [[j mxs] (zipmap (range) (:pixels monster))
              i mxs]
-         (-> image (nth (+ y j)) (get (+ x i))))
+         (-> image (nth (+ y j)) (nth (+ x i))))
        (every? #{\#})))
 
 (defn- hightlight-monster [image [x y]]
@@ -98,9 +101,10 @@
           (if (<= y j (+ y 2))
             (->> (get (:pixels monster) (- j y))
                  (reduce (fn [line mx]
-                           (str (subs line 0 (+ x mx)) "O" (subs line (+ x mx 1))))
+                           (assoc line (+ x mx) \O))
                          line))
-            line)))))
+            line)))
+       vec))
 
 (defn highlight-monsters [image]
   (->> (for [y (range (- (count image) (:height monster)))
@@ -114,7 +118,7 @@
         image)))
 
 (defn part1 [input]
-  (let [grid (assemble (tiles input))
+  (let [grid (assemble (read-tiles input))
         side (int (Math/sqrt (count grid)))
         ids (->> grid
                  (sort-by first)
@@ -127,10 +131,10 @@
        (peek (first ids)))))
 
 (defn part2 [input]
-  (let [grid (assemble (tiles input))
+  (let [grid (assemble (read-tiles input))
         image (glue-image grid)]
     (first
-     (for [image (all-positions image)
+     (for [image (all-orientations image)
            :let [with-monsters (highlight-monsters image)]
            :when (not= image with-monsters)]
-       (->> with-monsters (mapcat #(re-seq #"#" %)) count)))))
+       (->> with-monsters (mapcat #(filter #{\#} %)) count)))))
