@@ -1,6 +1,6 @@
 (ns day21-test
-  (:require [clojure.test :refer (is testing deftest)]
-            [clojure.java.io :as io]
+  (:require [clojure.java.io :as io]
+            [clojure.test :refer [deftest is testing]]
             [day21 :as sut]))
 
 (def example

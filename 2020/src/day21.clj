@@ -26,8 +26,7 @@
   (->> (for [{:keys [ingredients allergens]} food
              allergen allergens]
          {allergen (set ingredients)})
-       (reduce (partial merge-with set/intersection))
-       (fix-point prune-decided)))
+       (reduce (partial merge-with set/intersection))))
 
 (defn part1 [input]
   (let [food (parse-food input)
@@ -40,6 +39,7 @@
 (defn part2 [input]
   (->> (parse-food input)
        allergic-ingredients
+       (fix-point prune-decided)
        (sort-by first)
        (map (comp first second))
        (str/join ",")))
