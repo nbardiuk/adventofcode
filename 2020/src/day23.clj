@@ -4,42 +4,48 @@
   (mod (dec n) (inc m)))
 
 (defn circle [xs]
-  {:cursor (first xs)
-   :items (->> (for [[prev v next] (take (count xs) (partition 3 1 (cycle xs)))]
-                 [v {:prev prev :next next}])
-               (into {}))})
+  (let [prev (int-array (inc (count xs)) 0)
+        next (int-array (inc (count xs)) 0)]
+    (doseq [[p v n] (take (count xs) (partition 3 1 (cycle xs)))]
+      (aset prev v ^int p)
+      (aset next v ^int n))
+    {:cursor (first xs)
+     :prev prev
+     :next next}))
 
 (defn rotate-to [m dest]
   (assoc m :cursor dest))
 
-(defn shrink [{:keys [cursor items]}]
-  (let [{:keys [next prev]} (get items cursor)]
-    {:cursor next
-     :items (-> items
-                (assoc-in [next :prev] prev)
-                (assoc-in [prev :next] next))}))
+(defn shrink [{:keys [cursor next prev] :as circle}]
+  (let [next (ints next)
+        prev (ints prev)
+        n (aget next cursor)
+        p (aget prev cursor)]
+    (aset prev n p)
+    (aset next p n)
+    (assoc circle :cursor n)))
 
-(defn add [{:keys [cursor items]} v]
-  (let [next (get-in items [cursor :next])]
-    {:cursor v
-     :items (-> items
-                (assoc-in [cursor :next] v)
-                (assoc v {:prev cursor :next next})
-                (assoc-in [next :prev] v))}))
+(defn add [{:keys [cursor next prev] :as circle} v]
+  (let [next (ints next)
+        prev (ints prev)
+        n (aget next cursor)]
+    (doto prev (aset v ^int cursor) (aset n ^int v))
+    (doto next (aset cursor ^int v) (aset v n))
+    (assoc circle :cursor v)))
 
-(defn append [{:keys [cursor] :as circle} v]
-  (let [prev (get-in circle [:items cursor :prev])]
+(defn append [{:keys [cursor prev] :as circle} v]
+  (let [p (aget (ints prev) ^int cursor)]
     (-> circle
-        (rotate-to prev)
+        (rotate-to p)
         (add v)
         (rotate-to cursor))))
 
-(defn cut [{:keys [cursor items]}]
-  (letfn [(go [items c]
-              (let [next (get-in items [c :next])]
-                (when (not= next cursor)
-                  (cons next (lazy-seq (go items next))))))]
-    (cons cursor (go items cursor))))
+(defn cut [{:keys [cursor next]}]
+  (letfn [(go [c]
+              (let [n (aget (ints next) c)]
+                (when (not= n cursor)
+                  (cons n (lazy-seq (go n))))))]
+    (cons cursor (go cursor))))
 
 (defn- move [m all]
   (let [[head rest] ((juxt :cursor shrink) all)
