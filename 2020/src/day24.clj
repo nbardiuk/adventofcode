@@ -20,20 +20,22 @@
                    (conj black tile)))
                #{})))
 
-(defn neigbours [tile]
+(defn neighbors [tile]
   (->> (vals directions)
        (map #(mapv + tile %))))
 
-(defn step [black-tiles]
+(defn step [black]
   (set
-   (for [[tile n] (frequencies (mapcat #(neigbours %) black-tiles))
-         :when (if (black-tiles tile)
-                 (not (or (zero? n) (< 2 n)))
+   (for [[tile n] (frequencies (mapcat #(neighbors %) black))
+         :when (if (black tile)
+                 (#{1 2} n)
                  (= 2 n))]
      tile)))
 
 (defn solution [steps input]
-  (count (nth (iterate step (parse-tiles input)) steps)))
+  (-> (iterate step (parse-tiles input))
+      (nth steps)
+      (count)))
 
 (def part1 (partial solution 0))
 (def part2 (partial solution 100))
