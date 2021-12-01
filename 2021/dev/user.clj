@@ -1,7 +1,9 @@
 (ns user
-  (:require [clojure.test :as test]
-            [clojure.tools.namespace.repl :refer [refresh]]
-            [clj-http.lite.client :as http]))
+  (:require
+   [clj-http.lite.client :as http]
+   [clojure.test :as test]
+   [clojure.tools.namespace.repl :refer [refresh]]
+   [nextjournal.clerk :as clerk]))
 
 (defn run-tests []
   (refresh)
@@ -18,4 +20,8 @@
 
 (comment
   (fetch-input 1)
+  #__)
+
+(comment
+  (clerk/serve! {:watch-paths ["dev"]})
   #__)
