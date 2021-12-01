@@ -6,27 +6,15 @@
   (->> (string/split-lines input)
        (map parse-long)))
 
-(defn- keep-increasing [numbers]
-  (->> numbers
-       (partition 2 1)
-       (filter #(apply < %))
-       (map second)))
+(defn- increasing-windows [window numbers]
+  (->> (partition window 1 numbers)
+       (filter #(< (first %) (last %)))))
 
-(defn- three-measurements [numbers]
-  (->> numbers
-       (partition-all 3 1)
-       (map #(apply + %))))
-
-(defn part1 [input]
-  (->> input
-       parse-longs
-       keep-increasing
+(defn solution [window input]
+  (->> (parse-longs input)
+       (increasing-windows window)
        count))
 
-(defn part2 [input]
-  (->> input
-       parse-longs
-       three-measurements
-       keep-increasing
-       count))
+(def part1 (partial solution 2))
+(def part2 (partial solution 4))
 
