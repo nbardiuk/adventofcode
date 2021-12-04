@@ -13,7 +13,7 @@
   (let [rows (->> board (partition 5))
         cols (apply map vector rows)]
     (->> (concat rows cols)
-         (some #(= (repeat 5 true) (map :marked? %)))
+         (some #(every? :marked? %))
          some?)))
 
 (defn- mark [board draw]
@@ -24,16 +24,17 @@
   (* draw
      (->> board (remove :marked?) (map :number) (reduce + 0))))
 
+(defn- lazy-scores [boards [draw & next-draws]]
+  (lazy-seq
+   (when draw
+     (let [marked (map #(mark % draw) boards)
+           {finished true playing false} (group-by bingo? marked)]
+       (concat (map #(score % draw) finished)
+               (lazy-scores playing next-draws))))))
+
 (defn- scores [input]
-  (let [{:keys [draws boards]} (parse-input input)]
-    ((fn lazy-scores [[draw & next-draws] boards]
-       (lazy-seq
-        (when draw
-          (let [{bingo-boards true next-boards false}
-                (->> boards (map #(mark % draw)) (group-by bingo?))]
-            (concat (map #(score % draw) bingo-boards)
-                    (lazy-scores next-draws next-boards))))))
-     draws boards)))
+  (let [{:keys [boards draws]} (parse-input input)]
+    (lazy-scores boards draws)))
 
 (def part1 (comp first scores))
 (def part2 (comp last scores))
