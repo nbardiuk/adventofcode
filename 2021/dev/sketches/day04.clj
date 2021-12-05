@@ -72,11 +72,9 @@
         (q/rect (+ board-x cell-pad (* x cell-outer-size))
                 (+ board-y cell-pad (* y cell-outer-size))
                 cell-inner-size cell-inner-size))))
-  (q/save (format "images/day04-%03d.jpg" @step)))
+  #_(q/save (format "images/day04-%03d.jpg" @step)))
 
 (comment (q/defsketch day04
            :title "day04"
            :draw draw
            :size [1024 1024]))
-
-(comment (.redraw day04))
