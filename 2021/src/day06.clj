@@ -5,14 +5,14 @@
 
 (def family-size
   (memoize
-   (fn [age days]
-     (->> (range (- days age) 0 -7)
+   (fn [cycle-day days-left]
+     (->> (range (- days-left cycle-day) 0 -7)
           (map #(family-size 9 %))
           (reduce + 1)))))
 
-(defn solution [days input]
+(defn solution [days-left input]
   (->> (parse-longs input)
-       (map #(family-size % days))
+       (map #(family-size % days-left))
        (reduce +)))
 
 (def part1 (partial solution 80))
