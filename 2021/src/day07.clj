@@ -1,16 +1,16 @@
 (ns day07
   (:require [clojure.java.math :as math]))
 
-(defn- parse-longs [input]
+(defn parse-longs [input]
   (->> input (re-seq #"\d+") (map parse-long)))
 
-(defn- median [xs]
+(defn median [xs]
   (-> xs sort (nth (/ (count xs) 2))))
 
-(defn- floor-mean [xs]
+(defn floor-mean [xs]
   (math/floor-div (reduce + 1 xs) (count xs)))
 
-(defn- distance [a b]
+(defn distance [a b]
   (math/abs (- a b)))
 
 (defn- arithmetic-sum [n]
