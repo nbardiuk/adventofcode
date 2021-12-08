@@ -15,7 +15,7 @@
    #{\a \b \c \d \e \f \g} 8
    #{\a \b \c \d \f \g}    9})
 
-(defn- common-sectors-by-count [digits]
+(defn common-sectors-by-count [digits]
   (update-vals (group-by count digits)
                #(apply set/intersection %)))
 
@@ -26,7 +26,7 @@
 
 (def correct->mixed (into {} (map vector all-sectors (repeat all-sectors))))
 
-(defn- narrow [correct->mixed correct mixed]
+(defn narrow [correct->mixed correct mixed]
   (let [not-correct (set/difference all-sectors correct)]
     (as-> correct->mixed $
       (reduce #(update %1 %2 set/intersection mixed) $ correct)
