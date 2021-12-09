@@ -1,12 +1,12 @@
 (ns day09
   (:require [clojure.string :as string]))
 
-(defn- parse-map [input]
+(defn parse-map [input]
   (vec
    (for [line (string/split-lines input)]
      (->> line (re-seq #"\d") (mapv parse-long)))))
 
-(defn- grid [heights]
+(defn grid [heights]
   (for [x (range (count (first heights)))
         y (range (count heights))]
     [y x]))
