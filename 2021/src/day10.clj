@@ -13,14 +13,14 @@
 
 (defn analyze [brackets]
   (loop [[bracket & brackets] brackets
-         open []]
+         open '()]
     (if bracket
       (if-let [open-bracket ((comp :open config) bracket)]
         (if (= open-bracket (peek open))
           (recur brackets (pop open))
           {:unexpected [bracket]})
         (recur brackets (conj open bracket)))
-      {:completion (->> open rseq (map (comp :closing config)))})))
+      {:completion (map (comp :closing config) open)})))
 
 (defn score [score-name brackets]
   (reduce (fn [result bracket]
