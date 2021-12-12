@@ -1,4 +1,4 @@
-(ns sketcher.day11
+(ns sketches.day11
   (:require [clojure.java.io :as io]
             [clojure2d.core :as c2d]
             [clojure2d.color :as color]
