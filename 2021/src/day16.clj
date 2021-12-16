@@ -8,59 +8,54 @@
       (string/replace " " "0")))
 
 (defn take-bits [bits length]
-  [(subs bits 0 length)
-   (subs bits length)])
-
-(defn parse-bin [bits]
-  (Long/parseLong bits 2))
+  [(subs bits 0 length) (subs bits length)])
 
 (defn parse-bits [bits length]
   (let [[a bits] (take-bits bits length)]
-    [(parse-bin a) bits]))
+    [(Long/parseLong a 2) bits]))
 
 (declare parse-packet)
 
 (defn parse-count-packets [n bits]
-  (loop [result []
+  (loop [packets []
          bits bits]
-    (if (= n (count result))
-      [result bits]
-      (let [[r bits] (parse-packet bits)]
-        (recur (conj result r) bits)))))
+    (if (= n (count packets))
+      [packets bits]
+      (let [[packet bits] (parse-packet bits)]
+        (recur (conj packets packet) bits)))))
 
 (defn parse-length-packets [length bits]
-  (let [keep-bits (- (count bits) length)]
-    (loop [result []
+  (let [[bits rest] (take-bits bits length)]
+    (loop [packets []
            bits bits]
-      (if (= keep-bits (count bits))
-        [result bits]
-        (let [[r bits] (parse-packet bits)]
-          (recur (conj result r) bits))))))
+      (if (zero? (count bits))
+        [packets rest]
+        (let [[packet bits] (parse-packet bits)]
+          (recur (conj packets packet) bits))))))
 
 (defn parse-packets [bits]
   (let [[length-type-id bits] (parse-bits bits 1)
-        [parser length] (case length-type-id
-                          0 [parse-length-packets 15]
-                          1 [parse-count-packets 11])
+        [packets-parser length] (case length-type-id
+                                  0 [parse-length-packets 15]
+                                  1 [parse-count-packets 11])
         [n bits] (parse-bits bits length)]
-    (parser n bits)))
+    (packets-parser n bits)))
 
 (defn parse-literal [bits]
-  (loop [groups ""
+  (loop [value 0
          bits bits]
-    (let [[type bits] (parse-bits bits 1)
-          [group bits] (take-bits bits 4)
-          groups (str groups group)]
-      (case type
-        0 [(parse-bin groups) bits]
-        1 (recur groups bits)))))
+    (let [[flag bits] (parse-bits bits 1)
+          [chunk bits] (parse-bits bits 4)
+          value (+ chunk (bit-shift-left value 4))]
+      (case flag
+        0 [value bits]
+        1 (recur value bits)))))
 
 (defn parse-packet [bits]
   (let [[version bits] (parse-bits bits 3)
         [type-id bits] (parse-bits bits 3)
-        [body bits]    (if (= 4 type-id)
-                         (parse-literal bits)
-                         (parse-packets bits))]
+        body-parser (if (= 4 type-id) parse-literal parse-packets)
+        [body bits] (body-parser bits)]
     [{:version version
       :type-id type-id
       :body body}
