@@ -49,22 +49,16 @@
            (reduce into)))))
 
 (defn nest [vs direction]
-  (for [[v path] vs] [v (into [direction] path)]))
-
-(defn unnest [vs]
-  (for [[v path] vs] [v (subvec path 1)]))
+  (vec (for [[v path] vs] [v (into [direction] path)])))
 
 (defn add [a b]
-  (->> (into (vec (nest a :left)) (nest b :right))
+  (->> (into (nest a :left) (nest b :right))
        (fix-point (comp split #(fix-point explode %)))))
 
-(defn magnitude [[[v path] :as vs]]
-  (if (empty? path)
-    v
-    (let [[left right] (->> (split-with (fn [[_v path]] (= :left (first path))) vs)
-                            (map unnest))]
-      (+ (* 3 (magnitude left))
-         (* 2 (magnitude right))))))
+(defn magnitude [vs]
+  (->> vs
+       (map (fn [[v path]] (->> path (map {:left 3 :right 2}) (reduce * v))))
+       (reduce +)))
 
 (defn part1 [input]
   (->> input
