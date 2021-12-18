@@ -2,17 +2,12 @@
   (:require [clojure.java.io :as io]
             [clojure2d.core :as c2d]
             [clojure.java.math :as math]
+            [day00 :refer [take-until-repeat]]
             [day07 :refer [floor-mean median distance parse-longs]]))
 
 (def positions (->> "input7.txt" io/resource slurp parse-longs))
 (def mean-position (floor-mean positions))
 (def median-position (median positions))
-
-(defn- take-until-repeat [xs]
-  (->> (partition 2 1 xs)
-       (take-while #(apply not= %))
-       (map second)
-       (cons (first xs))))
 
 (def steps
   (let [acceleration 2]

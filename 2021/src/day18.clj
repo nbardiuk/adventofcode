@@ -1,17 +1,12 @@
 (ns day18
   (:require [clojure.string :as string]
             [clojure.edn :as edn]
-            [clojure.java.math :as math]))
+            [clojure.java.math :as math]
+            [day00 :refer [fix-point]]))
 
 (defn parse [input]
   (->> (string/split-lines input)
        (mapv edn/read-string)))
-
-(defn fix-point [f x]
-  (let [x' (f x)]
-    (if (= x x')
-      x
-      (recur f x'))))
 
 (defn flat-index [xs]
   (let [branch? (comp not number? first)

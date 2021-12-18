@@ -1,5 +1,6 @@
 (ns day11
-  (:require [clojure.string :as string]))
+  (:require [clojure.string :as string]
+            [day00 :refer [fix-point]]))
 
 (defn parse-grid [input]
   (let [lines (string/split-lines input)]
@@ -9,12 +10,6 @@
                :let [level (subs line x (inc x))]]
            {[x y] (parse-long level)})
          (apply merge))))
-
-(defn fix-point [f x]
-  (->> (iterate f x)
-       (partition 2 1)
-       (drop-while #(apply not= %))
-       ffirst))
 
 (defn neighbours [[x y]]
   (for [dx [-1 0 1]

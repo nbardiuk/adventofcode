@@ -1,13 +1,8 @@
 (ns sketches.day18
   (:require [clojure2d.core :as c2d]
             [clojure.string :as string]
-            [day18 :refer [fix-point flat-index explode split]]))
-
-(defn- take-until-repeat [xs]
-  (->> (partition 2 1 xs)
-       (take-while #(apply not= %))
-       (map second)
-       (cons (first xs))))
+            [day00 :refer [fix-point take-until-repeat]]
+            [day18 :refer [flat-index explode split]]))
 
 (def steps
   (->>

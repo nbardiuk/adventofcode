@@ -4,15 +4,10 @@
             [clojure2d.color :as color]
             [fastmath.vector :as v]
             [fastmath.core :as m]
+            [day00 :refer [take-until-repeat]]
             [day11 :refer [parse-grid flash]]))
 
 (def levels (->> "input11.txt" io/resource slurp parse-grid))
-
-(defn- take-until-repeat [xs]
-  (->> (partition 2 1 xs)
-       (take-while #(apply not= %))
-       (map second)
-       (cons (first xs))))
 
 (defn step [levels]
   (->> (update-vals (last levels) inc)

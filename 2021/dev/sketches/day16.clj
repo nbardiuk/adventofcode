@@ -1,6 +1,7 @@
 (ns sketches.day16
   (:require [clojure2d.core :as c2d]
             [fastmath.core :as math]
+            [day00 :refer [take-until-repeat]]
             [day16 :refer [hex->bin parse-packet]]
             [day16-test :refer [my-input]]))
 
@@ -24,12 +25,6 @@
 
 (defn bool->int [b]
   (get {true 1 false 0} b b))
-
-(defn- take-until-repeat [xs]
-  (->> (partition 2 1 xs)
-       (take-while #(apply not= %))
-       (map second)
-       (cons (first xs))))
 
 (def steps
   (let [r (vec
