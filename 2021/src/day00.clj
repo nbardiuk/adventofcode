@@ -12,3 +12,6 @@
        (map second)
        (cons (first xs))))
 
+(defn tails [xs]
+  (->> (iterate rest xs)
+       (take-while seq)))
