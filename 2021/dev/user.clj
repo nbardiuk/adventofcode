@@ -5,9 +5,13 @@
    [clojure.tools.namespace.repl :refer [refresh]]
    [nextjournal.clerk :as clerk]))
 
-(defn run-tests []
-  (refresh)
-  (test/run-all-tests #"day.*"))
+(defn run-tests
+  ([] (run-tests ".*"))
+  ([day]
+   (let [result (refresh)]
+     (if (= :ok result)
+       (test/run-all-tests (re-pattern (str "day" day "-test")))
+       result))))
 
 (def session "get-from-browser")
 
