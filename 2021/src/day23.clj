@@ -16,7 +16,8 @@
     {:amphipods (into {} (for [[x y c] points :when (#{:A :B :C :D} c)] [[x y] c]))
      :grid (into #{} (for [[x y c] points :when (#{:. :A :B :C :D} c)] [x y]))}))
 
-(def costs {:A 1 :B 10 :C 100 :D 1000})
+(def costs
+  {:A 1 :B 10 :C 100 :D 1000})
 
 (def column
   {:A 3 :B 5 :C 7 :D 9})
@@ -67,11 +68,18 @@
       queue
       (assoc queue k v))))
 
+(def est-left
+  (memoize
+   (fn [amphipods]
+     (->> (for [[[x y] t] amphipods]
+            (* (costs t) (+ (Math/abs (- x (column t))) (Math/abs (- y 5)))))
+          (reduce +)))))
+
 (defn part1 [input]
   (let [{:keys [grid amphipods]} (parse input)]
     (loop [seen? #{}
-           queue (priority-map amphipods 0)]
-      (let [[amphipods cost] (peek queue)
+           queue (priority-map amphipods [0 0])]
+      (let [[amphipods [_ cost]] (peek queue)
             queue (pop queue)
             seen? (conj seen? amphipods)]
 
@@ -94,9 +102,10 @@
                                       ;; enter only target room
                                      (target-room? grid t n amphipods))
 
-                              :let [amphipods (-> amphipods (dissoc p) (assoc n t))]
+                              :let [amphipods (-> amphipods (dissoc p) (assoc n t))
+                                    cost (+ cost (* d (costs t)))]
                               :when (not (seen? amphipods))]
-                          [amphipods (+ cost (* d (costs t)))])
+                          [amphipods [(+ cost (est-left amphipods)) cost]])
                         (reduce push-queue queue)))))))))
 
 (defn part2 [input]
