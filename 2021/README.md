@@ -1,0 +1,17 @@
+<video src='https://github.com/nbardiuk/adventofcode/blob/master/2021/images/day04.mp4' width=500/>
+<video src='https://github.com/nbardiuk/adventofcode/blob/master/2021/images/day05.mp4' width=500/>
+<video src='https://github.com/nbardiuk/adventofcode/blob/master/2021/images/day06.mp4' width=500/>
+<video src='https://github.com/nbardiuk/adventofcode/blob/master/2021/images/day07.mp4' width=500/>
+<video src='https://github.com/nbardiuk/adventofcode/blob/master/2021/images/day08.mp4' width=500/>
+<video src='https://github.com/nbardiuk/adventofcode/blob/master/2021/images/day08.zoom.mp4' width=500/>
+<video src='https://github.com/nbardiuk/adventofcode/blob/master/2021/images/day09.mp4' width=500/>
+<video src='https://github.com/nbardiuk/adventofcode/blob/master/2021/images/day10.mp4' width=500/>
+<video src='https://github.com/nbardiuk/adventofcode/blob/master/2021/images/day11.mp4' width=500/>
+<video src='https://github.com/nbardiuk/adventofcode/blob/master/2021/images/day12.mp4' width=500/>
+<video src='https://github.com/nbardiuk/adventofcode/blob/master/2021/images/day13.mp4' width=500/>
+<video src='https://github.com/nbardiuk/adventofcode/blob/master/2021/images/day14.mp4' width=500/>
+<video src='https://github.com/nbardiuk/adventofcode/blob/master/2021/images/day15.mp4' width=500/>
+<video src='https://github.com/nbardiuk/adventofcode/blob/master/2021/images/day16.mp4' width=500/>
+<video src='https://github.com/nbardiuk/adventofcode/blob/master/2021/images/day17.mp4' width=500/>
+<video src='https://github.com/nbardiuk/adventofcode/blob/master/2021/images/day18.mp4' width=500/>
+<video src='https://github.com/nbardiuk/adventofcode/blob/master/2021/images/day25.mp4' width=500/>
