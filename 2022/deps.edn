@@ -1,0 +1,11 @@
+{:deps {org.clojure/clojure {:mvn/version "1.11.1"}}
+ :aliases
+ {:test
+  {:extra-deps  {lambdaisland/kaocha {:mvn/version "1.71.1119"}}
+   :extra-paths ["test" "test-resources"]}
+  :dev
+  {:extra-deps  {org.clj-commons/clj-http-lite {:mvn/version "1.0.13"}}
+   :extra-paths ["dev"]}
+  :sketch
+  {:extra-deps  {clojure2d/clojure2d {:mvn/version "1.4.4"}}
+   :extra-paths ["sketch"]}}}
