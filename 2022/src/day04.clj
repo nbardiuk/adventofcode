@@ -17,16 +17,14 @@
   (or (<= x a y)
       (<= a x b)))
 
-(defn count-overlaping-ranges
-  [overlaps? input]
-  (->> (range-pairs input)
-       (filter overlaps?)
-       count))
-
 (defn part1
   [input]
-  (count-overlaping-ranges fully-contains? input))
+  (->> (range-pairs input)
+       (filter fully-contains?)
+       count))
 
 (defn part2
   [input]
-  (count-overlaping-ranges partially-overlaps? input))
+  (->> (range-pairs input)
+       (filter partially-overlaps?)
+       count))
