@@ -10,10 +10,11 @@
   (long (Math/signum (double n))))
 
 (defn follow [head {:keys [x y] :as tail}]
-  (let [dx   (- (:x head) x)
-        dy   (- (:y head) y)]
-    (if (or (= 1 (+ (abs dx) (abs dy)))
-            (= 1 (abs dx) (abs dy)))
+  (let [dx (- (:x head) x)
+        dy (- (:y head) y)
+        touching? (and (<= (abs dx) 1)
+                       (<= (abs dy) 1))]
+    (if touching?
       tail
       {:x (+ x (signum dx))
        :y (+ y (signum dy))})))
