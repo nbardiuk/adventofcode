@@ -6,49 +6,39 @@
    [colors :as colors]
    [day11 :as solution]))
 
-(defn inits [xs]
-  (map vec (drop 1 (concat (take-while (comp seq) (iterate rest xs)) [[]]))))
+(def monkeys
+  (solution/parse-notes (slurp (io/resource "input11.txt"))))
 
-(defn dest
-  [worry-drop common-divisor
-   {:keys [operation divisor true-id false-id]}
-   item]
-  (let [item (-> (solution/app operation item)
-                 (/ worry-drop)
-                 long
-                 (mod common-divisor))]
-    (if (zero? (mod item divisor))
-      true-id
-      false-id)))
+(def divisor
+  (->> monkeys (map :divisor) (reduce *)))
 
-(def monkeys (solution/parse-input (slurp (io/resource "input11.txt"))))
-(def common-divisor (->> monkeys (map :divisor) (reduce *)))
-(def worry-drop 1)
-(def steps (->> {:items (->> monkeys (map (juxt :id :items)) (into {}))
-                 :steps []}
-                (iterate
-                 (fn [state]
-                   (reduce
-                    (fn monkey-turn
-                      [{:keys [items steps]} {:keys [id] :as monkey}]
-                      (let [monkey-items (items id)
-                            items        (assoc items id [])]
-                        {:items (reduce (partial solution/throw-item worry-drop common-divisor monkey) items monkey-items)
-                         :steps (into
-                                 steps
-                                 (map
-                                  (fn [items mi]
-                                    {:items (assoc items id mi)
-                                     :current-id id
-                                     :to-id      (some->> mi first (dest worry-drop common-divisor monkey))})
-                                  (reductions
-                                   (partial solution/throw-item worry-drop common-divisor monkey) items monkey-items)
-                                  (inits monkey-items)))}))
-                    state
-                    monkeys)))
-                (take 20)
-                last
-                :steps))
+(defn item-norm [i]
+  (mod i divisor))
+
+(def steps
+  (->> {:items (->> monkeys (map (juxt :id :items)) (into {}))
+        :steps []}
+       (iterate
+        (fn [state]
+          (reduce
+           (fn [{:keys [items steps]} {:keys [id] :as monkey}]
+             (let [monkey-items (items id)
+                   [iterations [items]] (->> items
+                                             (iterate (partial solution/throw-item item-norm monkey))
+                                             (split-at (count monkey-items)))]
+               {:items items
+                :steps (->> (map (fn [items item]
+                                   {:items items
+                                    :current-id id
+                                    :to-id      (->> item
+                                                     (solution/update-item item-norm monkey)
+                                                     (solution/destination monkey))})
+                                 iterations monkey-items)
+                            (into steps))}))
+           state
+           monkeys)))
+       (#(nth % 20))
+       :steps))
 (def stats (mapv frequencies (reductions conj [] (map :current-id steps))))
 
 (defn draw-items [canvas x y items]
