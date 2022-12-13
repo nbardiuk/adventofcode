@@ -9,6 +9,11 @@
 
 (defn packet-compare [left right]
   (cond
+
+    (and (map? left) (map? right))  0
+    (map? left)                    -1
+    (map? right)                    1
+
     (and (number? left) (number? right))
     (compare left right)
 
