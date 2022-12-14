@@ -16,12 +16,10 @@
   (for [dx [0 -1 1]]
     [(+ x dx) (+ y 1)]))
 
-(defn first-repeat [xs]
-  (loop [[x & xs] xs
-         prev nil]
-    (if (= x prev)
-      prev
-      (recur xs x))))
+(defn first-repeat [[x & xs]]
+  (if (= x (first xs))
+    x
+    (recur xs)))
 
 (defn parse-lines [input]
   (for [line (str/split-lines input)]
@@ -34,37 +32,37 @@
              y (arange ay by)]
          [x y])))
 
-(defn drop-sand [floor? obstacles]
+(defn shift-grain [obstacle? sand]
+  (->> (neighbours sand)
+       (find-first (comp not obstacle?))
+       (#(or % sand))))
+
+(defn drop-grain [obstacle?]
   (->> [500 0]
-       (iterate
-        (fn [sand]
-          (->> (neighbours sand)
-               (find-first (fn [p] (not (or (floor? p) (obstacles p)))))
-               (#(or % sand)))))
+       (iterate #(shift-grain obstacle? %))
        first-repeat))
 
 (defn part1 [input]
   (let [obstacles (read-obstacles input)
         bottom (->> obstacles (map second) (reduce max))
-        floor (+ 2 bottom)
-        floor? #(= floor (second %))
-        filled (->> obstacles
-                    (iterate (fn [obstacles]
-                               (let [sand (drop-sand floor? obstacles)]
-                                 (if (< (second sand) bottom)
-                                   (conj obstacles sand)
-                                   obstacles))))
+        floor? (fn [[_x y]] (= (+ 2 bottom) y))
+        grains (->> #{}
+                    (iterate (fn [grains]
+                               (let [obstacle? (some-fn grains obstacles floor?)
+                                     [_x y :as grain] (drop-grain obstacle?)]
+                                 (if (< bottom y)
+                                   grains
+                                   (conj grains grain)))))
                     first-repeat)]
-
-    (- (count filled) (count obstacles))))
+    (count grains)))
 
 (defn part2 [input]
   (let [obstacles (read-obstacles input)
-        floor (->> obstacles (map second) (reduce max) (+ 2))
-        floor? #(= floor (second %))
-        filled (->> obstacles
-                    (iterate (fn [obstacles]
-                               (conj obstacles (drop-sand floor? obstacles))))
+        bottom (->> obstacles (map second) (reduce max))
+        floor? (fn [[_x y]] (= (+ 2 bottom) y))
+        grains (->> #{}
+                    (iterate (fn [grains]
+                               (let [obstacle? (some-fn grains obstacles floor?)]
+                                 (conj grains (drop-grain obstacle?)))))
                     first-repeat)]
-
-    (- (count filled) (count obstacles))))
+    (count grains)))

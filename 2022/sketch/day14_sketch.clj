@@ -10,15 +10,17 @@
 (def floor (->> obstacles (map second) (reduce max) (+ 2)))
 (def floor? #(= floor (second %)))
 
-(def part1 (->> obstacles
-                (iterate (fn [obstacles]
-                           (conj obstacles (solution/drop-sand floor? obstacles))))
-                (#(nth % 737))))
+(def part1
+  (->> #{}
+       (iterate (fn [grains]
+                  (conj grains (solution/drop-grain (some-fn grains obstacles floor?)))))
+       (#(nth % 737))))
 
-(def part2 (->> obstacles
-                (iterate (fn [obstacles]
-                           (conj obstacles (solution/drop-sand floor? obstacles))))
-                (take 28145)))
+(def part2
+  (->> #{}
+       (iterate (fn [grains]
+                  (conj grains (solution/drop-grain (some-fn grains obstacles floor?)))))
+       (take 28145)))
 
 (defn draw [canvas _ ^long frameno _]
   (c2d/set-background canvas colors/aoc-background)
