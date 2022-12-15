@@ -15,12 +15,14 @@
        (partition 2)
        (map (fn [[s b]] [s b (distance s b)]))))
 
-(defn first-gap [ranges]
-  (loop [[[a b] [c d] & ranges] (sort ranges)]
-    (cond
-      (nil? c) nil
-      (< b c)  b
-      :else   (recur (cons [a (max b d)] ranges)))))
+(defn boundary [mag [x y] dist]
+  (for [d (range (+ 2 dist))
+        x [(- x d) (+ x d)]
+        :when (<= 0 x mag)
+        :let [d (- (inc dist) d)]
+        y [(- y d) (+ y d)]
+        :when (<= 0 y mag)]
+    [x y]))
 
 (defn part1 [row input]
   (let [data (read-input input)]
@@ -34,13 +36,9 @@
          count)))
 
 (defn part2 [mag input]
-  (let [data (read-input input)]
+  (let [data (sort-by ffirst > (read-input input))]
     (first
-     (for [row (range (inc mag))
-           :let [x (first-gap
-                    (for [[[x y] _ dist] data
-                          :let [d (- dist (abs (- y row)))]
-                          :when (< 0 d)]
-                      [(max 0 (- x d)) (inc (min mag (+ x d)))]))]
-           :when x]
-       (+ (* 4000000 x) row)))))
+     (for [p     (->> data (mapcat (fn [[s _ d]] (boundary mag s d))))
+           :when (->> data (every? (fn [[s _ d]] (< d (distance p s)))))
+           :let  [[x y] p]]
+       (+ (* 4000000 x) y)))))
