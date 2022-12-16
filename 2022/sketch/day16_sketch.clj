@@ -25,7 +25,7 @@
        (partition 2 1)
        (mapcat #(apply solution/path graph %))))
 
-(def preasures
+(def pressures
   (let [a (->> (first (:paths state))
                (partition 2 1)
                (mapcat #(apply solution/path graph %))
@@ -61,7 +61,7 @@
                        (filter (fn [[a b]] (closed-idx b)))
                        (map second)
                        set)
-        preasure (nth preasures n (last preasures))
+        pressure (nth pressures n (last pressures))
 
         o (count open-idx)
         i (count closed-idx)
@@ -90,7 +90,7 @@
       (c2d/line canvas (fx c) (fy c) 500 ty))
     (c2d/ellipse canvas 500 ty s s)
     (c2d/set-color canvas colors/aoc-red)
-    (c2d/text canvas (str "Released preasure: " preasure) 250 (+ ty 5))
+    (c2d/text canvas (str "Released pressure: " pressure) 250 (+ ty 5))
     (c2d/set-color canvas colors/aoc-dark-green)
     (c2d/text canvas (str "Time: " n) 250 (- ty 25))
 

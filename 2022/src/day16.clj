@@ -42,12 +42,12 @@
                  :paths     (mapv vector start)
                  :times     times
                  :closed    closed
-                 :preasure  0
+                 :pressure  0
                  :priority  0})
     (loop [seen #{}]
-      (let [{:as state :keys [positions times closed preasure paths]} (.poll queue)]
+      (let [{:as state :keys [positions times closed pressure paths]} (.poll queue)]
         (cond
-          (seen [(set positions) preasure])
+          (seen [(set positions) pressure])
           (recur seen)
 
           (or (empty? closed) (= 0 (apply max times)))
@@ -65,21 +65,21 @@
                                    time      (max 0 (- time dist))
                                    times     (assoc times index time)
                                    closed    (disj closed valve)
-                                   preasure  (+ preasure (* time (:rate (graph valve))))]
-                             :when (not (seen [(set positions) preasure]))]
+                                   pressure  (+ pressure (* time (:rate (graph valve))))]
+                             :when (not (seen [(set positions) pressure]))]
                          {:positions positions
                           :paths     (update paths index #(conj % valve))
                           :times     times
                           :closed    closed
-                          :preasure  preasure
-                          :priority  (+ preasure (* 10 (count closed) (apply max times)))})))
-            (recur (conj seen [(set positions) preasure]))))))))
+                          :pressure  pressure
+                          :priority  (+ pressure (* 10 (count closed) (apply max times)))})))
+            (recur (conj seen [(set positions) pressure]))))))))
 
 (defn solution [input start times]
   (let [graph         (parse-graph input)
         closed-valves (->> graph (keep (fn [[v {:keys [rate]}]] (when (< 0 rate) v))) set)
         state         (release-valves graph closed-valves start times)]
-    (:preasure state)))
+    (:pressure state)))
 
 (defn part1 [input]
   (solution input [:AA] [30]))
