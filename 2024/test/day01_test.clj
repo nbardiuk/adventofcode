@@ -23,10 +23,8 @@
   (testing "my input"
     (is (= 1197984 (part1 @my-input)))))
 
-(deftest part1-test
+(deftest part2-test
   (testing "example"
     (is (= 31 (part2 example1))))
   (testing "my input"
     (is (= 23387399 (part2 @my-input)))))
-
-
